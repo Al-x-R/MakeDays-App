@@ -1,3 +1,4 @@
+// src/types.ts
 export type DayStatus = 'PAST' | 'TODAY' | 'FUTURE' | 'EMPTY';
 
 export interface DayData {
@@ -14,4 +15,23 @@ export interface MonthData {
   id: string;
   name: string;
   days: DayData[];
+}
+
+export type TrackerType = 'HABIT' | 'EVENT';
+
+export interface Tracker {
+  id: string;
+  title: string;
+  type: TrackerType;
+  color?: string;
+  history: Record<string, boolean>;
+  createdAt: string;
+
+  endDate?: string;
+  isCountDown?: boolean;
+
+  goal?: {
+    enabled: boolean;
+    targetValue?: number;
+  };
 }

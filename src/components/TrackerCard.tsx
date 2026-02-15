@@ -1,13 +1,16 @@
+// src/components/TrackerCard.tsx
+
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Flame, Check, Activity } from 'lucide-react-native'; // Правильный импорт
+import { Flame, Check, ArrowUpCircle, ArrowDownCircle } from 'lucide-react-native';
 import colors from '../constants/colors';
+import { TrackerType } from '../types';
 
 interface TrackerCardProps {
   id: string;
   title: string;
-  type: 'FATE' | 'WILL';
+  type: TrackerType;
   streak?: number;
   todayCompleted?: boolean;
   onPress: () => void;
@@ -23,12 +26,10 @@ export const TrackerCard = ({
   onCheck
 }: TrackerCardProps) => {
 
-  // Цвета для градиента кнопки
-  const activeGradient = type === 'FATE'
+  const activeGradient = type === 'EVENT'
     ? colors.gradients.future
     : colors.gradients.today;
 
-  // Моковые точки активности (последние 5 дней)
   const mockDots = [true, true, false, true, todayCompleted];
 
   return (
@@ -37,30 +38,35 @@ export const TrackerCard = ({
       activeOpacity={0.8}
       onPress={onPress}
     >
-      {/* Левая часть: Инфо */}
       <View style={styles.info}>
         <Text style={styles.title}>{title}</Text>
 
-        {/* Строка со страйком (иконка огонька) */}
         <View style={styles.statsRow}>
-          <Flame
-            size={14}
-            color={streak > 0 ? colors.gradients.future[0] : colors.text.dim}
-            fill={streak > 0 ? colors.gradients.future[0] : 'transparent'} // Заливка огонька
-          />
-          <Text style={[
-            styles.streakText,
-            streak > 0 && { color: colors.text.secondary }
-          ]}>
-            {streak} day streak
-          </Text>
+          {type === 'HABIT' ? (
+            <>
+              <Flame
+                size={14}
+                color={streak > 0 ? colors.gradients.future[0] : colors.text.dim}
+                fill={streak > 0 ? colors.gradients.future[0] : 'transparent'}
+              />
+              <Text style={[
+                styles.streakText,
+                streak > 0 && { color: colors.text.secondary }
+              ]}>
+                {streak} day streak
+              </Text>
+            </>
+          ) : (
+            <>
+              <ArrowUpCircle size={14} color={colors.gradients.future[0]} />
+              <Text style={styles.streakText}>Tracking event</Text>
+            </>
+          )}
         </View>
       </View>
 
-      {/* Правая часть: Мини-хитмэп и Кнопка */}
       <View style={styles.actions}>
 
-        {/* Мини-хитмэп (точки) */}
         <View style={styles.miniHeatmap}>
           {mockDots.map((isActive, index) => (
             <View
@@ -77,8 +83,7 @@ export const TrackerCard = ({
           ))}
         </View>
 
-        {/* Кнопка Чек-ин (Только для привычек/WILL) */}
-        {type === 'WILL' && (
+        {type === 'HABIT' && (
           <TouchableOpacity onPress={onCheck} activeOpacity={0.7}>
             <LinearGradient
               colors={todayCompleted ? activeGradient : ['transparent', 'transparent']}
@@ -102,7 +107,7 @@ export const TrackerCard = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(20, 25, 30, 0.6)', // Темное стекло
+    backgroundColor: 'rgba(20, 25, 30, 0.6)',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,

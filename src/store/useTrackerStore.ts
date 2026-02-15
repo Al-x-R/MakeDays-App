@@ -2,20 +2,23 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export interface Tracker {
-  id: string;
-  title: string;
-  type: 'FATE' | 'WILL';
-  color?: string;
-  history: Record<string, boolean>;
-  createdAt: string;
-}
+import { Tracker, TrackerType } from '../types';
 
 interface TrackerState {
   trackers: Tracker[];
 
-  // Actions
-  addTracker: (title: string, type: 'FATE' | 'WILL', color?: string) => void;
+  addTracker: (
+    title: string,
+    type: TrackerType,
+    color: string,
+    config?: {
+      endDate?: Date;
+      isCountDown?: boolean;
+      goalEnabled?: boolean;
+      targetDays?: number;
+    }
+  ) => void;
+
   deleteTracker: (id: string) => void;
   toggleDay: (trackerId: string, date: string) => void;
 }
@@ -25,19 +28,27 @@ export const useTrackerStore = create<TrackerState>()(
     (set) => ({
       trackers: [],
 
-      addTracker: (title, type, color) => set((state) => ({
-        trackers: [
-          ...state.trackers,
-          {
-            id: Date.now().toString(),
-            title,
-            type,
-            color,
-            history: {},
-            createdAt: new Date().toISOString(),
-          },
-        ],
-      })),
+      addTracker: (title, type, color, config) => {
+        set((state) => ({
+          trackers: [
+            ...state.trackers,
+            {
+              id: Date.now().toString(),
+              title,
+              type,
+              color,
+              history: {},
+              createdAt: new Date().toISOString(),
+              endDate: config?.endDate?.toISOString(),
+              isCountDown: config?.isCountDown,
+              goal: {
+                enabled: config?.goalEnabled ?? false,
+                targetValue: config?.targetDays
+              }
+            },
+          ],
+        }));
+      },
 
       deleteTracker: (id) => set((state) => ({
         trackers: state.trackers.filter((t) => t.id !== id),
