@@ -1,36 +1,45 @@
 import React from 'react';
-import { ScrollView, StyleSheet, Alert, View } from 'react-native';
+import { View, ScrollView, StyleSheet, Alert, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Header } from '../components/Header';
 import { TrackerCard } from '../components/TrackerCard';
 import colors from '../constants/colors';
-import { useNavigation } from '@react-navigation/native';
+import { useTrackerStore } from '../store/useTrackerStore';
+import { format } from 'date-fns';
 
-export const ListScreen = () => {
-  const navigation = useNavigation();
+export const ListScreen = ({ navigation }: any) => {
+  const { trackers, toggleDay } = useTrackerStore();
 
-  const trackers = [
-    { id: '1', title: 'Жизнь (2026)', type: 'FATE' as const, streak: 45 },
-    { id: '2', title: 'Gym Workout', type: 'WILL' as const, streak: 3, done: true },
-    { id: '3', title: 'React Native', type: 'WILL' as const, streak: 12, done: false },
-  ];
+  const today = format(new Date(), 'yyyy-MM-dd'); // "2026-02-15"
+
+  const calculateStreak = (history: Record<string, boolean>) => {
+    return Object.keys(history).length;
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header />
+
       <ScrollView contentContainerStyle={styles.scroll}>
-        {trackers.map((t) => (
-          <TrackerCard
-            key={t.id}
-            id={t.id}
-            title={t.title}
-            type={t.type}
-            streak={t.streak}
-            todayCompleted={t.done}
-            onPress={() => (navigation as any).navigate('TrackerDetail', { title: t.title, type: t.type })}
-            onCheck={() => Alert.alert('Check', 'Done!')}
-          />
-        ))}
+        {trackers.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyText}>No trackers yet.</Text>
+            <Text style={styles.emptySubText}>Press (+) to create one.</Text>
+          </View>
+        ) : (
+          trackers.map((t) => (
+            <TrackerCard
+              key={t.id}
+              id={t.id}
+              title={t.title}
+              type={t.type}
+              streak={calculateStreak(t.history)}
+              todayCompleted={!!t.history[today]}
+              onPress={() => navigation.navigate('TrackerDetail', { trackerId: t.id, title: t.title })}
+              onCheck={() => toggleDay(t.id, today)}
+            />
+          ))
+        )}
         <View style={{ height: 80 }} />
       </ScrollView>
     </SafeAreaView>
@@ -40,4 +49,7 @@ export const ListScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   scroll: { padding: 16 },
+  emptyState: { marginTop: 100, alignItems: 'center' },
+  emptyText: { color: colors.text.secondary, fontSize: 18, fontWeight: '600' },
+  emptySubText: { color: colors.text.dim, marginTop: 8 },
 });
