@@ -26,7 +26,7 @@ export const YearGrid = () => {
 
   const availableWidth = width - (PADDING * 2) - MONTH_LABEL_WIDTH - GAP;
   const itemWidth = (availableWidth - (GAP * (COLS - 1))) / COLS;
-  const itemHeight = itemWidth * 0.6;
+  const itemHeight = itemWidth * 0.4;
 
   const handlePress = (day: DayData) => {
     if (!day.date || day.status === 'EMPTY') return;
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: PADDING,
-    paddingBottom: 50,
+    paddingBottom: 5,
     paddingTop: 10,
   },
   headerRow: {
