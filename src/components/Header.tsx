@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import colors from '../constants/colors';
+import { ChartColumn, LucideColumnsSettings } from 'lucide-react-native';
+import { useNavigationState } from '@react-navigation/native';
 
 interface HeaderProps {
   title?: string;
@@ -14,6 +16,10 @@ export const Header = ({
   onActionPress
 }: HeaderProps) => {
 
+  const state = useNavigationState(state => state);
+  const currentRouteName = state?.routes[state.index]?.name;
+
+  console.log(currentRouteName);
   const handlePress = () => {
     if (onActionPress) {
       onActionPress();
@@ -34,7 +40,11 @@ export const Header = ({
         onPress={handlePress}
         activeOpacity={0.7}
       >
-        <Text style={styles.buttonText}>View All</Text>
+        {currentRouteName === 'Calendar' ? (
+          <ChartColumn color={colors.text.primary} size={24} />
+        ) : (
+          <LucideColumnsSettings color={colors.text.primary} size={24} />
+        )}
       </TouchableOpacity>
     </View>
   );

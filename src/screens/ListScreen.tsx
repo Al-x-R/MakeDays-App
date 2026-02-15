@@ -4,8 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Header } from '../components/Header';
 import { TrackerCard } from '../components/TrackerCard';
 import colors from '../constants/colors';
+import { useNavigation } from '@react-navigation/native';
 
 export const ListScreen = () => {
+  const navigation = useNavigation();
+
   const trackers = [
     { id: '1', title: 'Жизнь (2026)', type: 'FATE' as const, streak: 45 },
     { id: '2', title: 'Gym Workout', type: 'WILL' as const, streak: 3, done: true },
@@ -24,7 +27,7 @@ export const ListScreen = () => {
             type={t.type}
             streak={t.streak}
             todayCompleted={t.done}
-            onPress={() => Alert.alert('Navigate', `Go to grid: ${t.title}`)}
+            onPress={() => (navigation as any).navigate('TrackerDetail', { title: t.title, type: t.type })}
             onCheck={() => Alert.alert('Check', 'Done!')}
           />
         ))}

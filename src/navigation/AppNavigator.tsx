@@ -1,14 +1,27 @@
+// src/navigation/AppNavigator.tsx
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
+import { TrackerDetailScreen } from '../screens/TrackerDetailScreen';
 import { ListScreen } from '../screens/ListScreen';
 import { CalendarScreen } from '../screens/CalendarScreen';
-import { ListCheck, CalendarDays, SquarePlus } from 'lucide-react-native';
+import { ListCheck, PlusCircle, CalendarDays } from 'lucide-react-native';
 import colors from '../constants/colors';
 import { View } from 'react-native';
 
-const Tab = createBottomTabNavigator();
+const HomeStack = createNativeStackNavigator();
 
+const HomeStackNavigator = () => {
+  return (
+    <HomeStack.Navigator screenOptions={{ headerShown: false }}>
+      <HomeStack.Screen name="TrackerList" component={ListScreen} />
+      <HomeStack.Screen name="TrackerDetail" component={TrackerDetailScreen} />
+    </HomeStack.Navigator>
+  );
+};
+
+const Tab = createBottomTabNavigator();
 const AddPlaceholder = () => <View style={{flex:1, backgroundColor: colors.background}} />;
 
 export const AppNavigator = () => {
@@ -31,8 +44,8 @@ export const AppNavigator = () => {
         }}
       >
         <Tab.Screen
-          name="List"
-          component={ListScreen}
+          name="ListTab"
+          component={HomeStackNavigator}
           options={{
             tabBarIcon: ({ color, size }) => <ListCheck color={color} size={size} />,
           }}
@@ -43,19 +56,14 @@ export const AppNavigator = () => {
           component={AddPlaceholder}
           options={{
             tabBarIcon: ({ focused }) => (
-              <SquarePlus
+              <PlusCircle
                 color={focused ? colors.gradients.today[1] : colors.text.primary}
                 size={32}
                 strokeWidth={2}
               />
             ),
           }}
-          listeners={({ navigation }) => ({
-            tabPress: (e) => {
-              e.preventDefault();
-              alert('Открыть модалку создания!');
-            },
-          })}
+          listeners={() => ({ tabPress: (e) => { e.preventDefault(); alert('Add modal'); } })}
         />
 
         <Tab.Screen
