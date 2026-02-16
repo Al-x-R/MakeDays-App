@@ -19,7 +19,6 @@ export const Header = ({
   const state = useNavigationState(state => state);
   const currentRouteName = state?.routes[state.index]?.name;
 
-  console.log(currentRouteName);
   const handlePress = () => {
     if (onActionPress) {
       onActionPress();

@@ -4,13 +4,15 @@ import {
   Platform, ScrollView, Switch, Modal
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { X, Check, Calendar as CalendarIcon, ArrowUpCircle, ArrowDownCircle, Flame, Infinity } from 'lucide-react-native';
+import { X, Check, Calendar as CalendarIcon, Infinity } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, addDays, differenceInCalendarDays, startOfDay } from 'date-fns';
 import { useTrackerStore } from '../store/useTrackerStore';
 import colors from '../constants/colors';
 import { TrackerType } from '../types';
+
+import { PreviewCard } from '../components/PreviewCard';
 
 const COLOR_OPTIONS = ['today', 'purple', 'green', 'orange', 'red', 'pink', 'blue', 'yellow'] as const;
 
@@ -24,51 +26,44 @@ export const CreateTrackerScreen = () => {
   const [type, setType] = useState<TrackerType>('HABIT');
   const [selectedColor, setSelectedColor] = useState<string>('today');
 
-  // Sync State: Date <-> Days
-  const [endDate, setEndDate] = useState(addDays(today, 21)); // Default +21 days
+  // Sync State
+  const [endDate, setEndDate] = useState(addDays(today, 21));
   const [daysInput, setDaysInput] = useState('21');
 
   // Toggles
-  const [isInfinite, setIsInfinite] = useState(false); //  HABIT
-  const [isCountDown, setIsCountDown] = useState(false); //  EVENT
+  const [isInfinite, setIsInfinite] = useState(false);
+  const [isCountDown, setIsCountDown] = useState(false);
 
-  // Date Picker State
+  // Picker
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [tempDate, setTempDate] = useState(new Date());
 
-  // --- SYNC LOGIC ---
-
+  // --- HANDLERS ---
   const handleDaysChange = (text: string) => {
     setDaysInput(text);
     const days = parseInt(text);
     if (!isNaN(days) && days >= 0) {
-      const newDate = addDays(today, days);
-      setEndDate(newDate);
+      setEndDate(addDays(today, days));
     }
   };
 
   const handleDateConfirm = (date: Date) => {
     setEndDate(date);
-    const daysDiff = differenceInCalendarDays(date, today);
-    setDaysInput(daysDiff.toString());
+    setDaysInput(differenceInCalendarDays(date, today).toString());
     setShowDatePicker(false);
   };
-
-  // --- HANDLERS ---
 
   const handleCreate = () => {
     if (!title.trim()) return;
 
     const config: any = {};
-
     if (type === 'HABIT') {
-      config.goalEnabled = !isInfinite; // If it is NOT infinite, then the target is enabled.
+      config.goalEnabled = !isInfinite;
       if (!isInfinite) {
         config.endDate = endDate;
         config.targetDays = parseInt(daysInput) || 0;
       }
     } else {
-      // EVENT
       config.endDate = endDate;
       config.isCountDown = isCountDown;
       config.targetDays = parseInt(daysInput) || 0;
@@ -84,72 +79,13 @@ export const CreateTrackerScreen = () => {
     setShowDatePicker(true);
   };
 
-  const onDateChangeIOS = (event: any, selectedDate?: Date) => {
-    if (selectedDate) setTempDate(selectedDate);
-  };
-
-  const onDateChangeAndroid = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) handleDateConfirm(selectedDate);
-  };
-
-  // --- PREVIEW ---
-  const PreviewCard = () => {
-    const gradient = colors.gradients[selectedColor as keyof typeof colors.gradients] || colors.gradients.today;
-
-    let subText = "";
-    if (type === 'HABIT') {
-      if (isInfinite) subText = "Build indefinitely";
-      else subText = `Goal: ${daysInput} days`;
-    } else {
-      subText = isCountDown ? `${daysInput} days left` : `${daysInput} days passed`;
-    }
-
-    return (
-      <View style={styles.previewContainer}>
-        <Text style={styles.previewLabel}>PREVIEW</Text>
-        <View style={styles.cardMock}>
-          <View style={styles.cardInfo}>
-            <Text style={styles.cardTitle}>{title || "Tracker Name..."}</Text>
-            <View style={styles.cardStats}>
-              {type === 'HABIT' ? (
-                <>
-                  <Flame size={14} color={gradient[0]} fill={gradient[0]} />
-                  <Text style={[styles.cardSub, { color: colors.text.secondary }]}>0 streak</Text>
-                </>
-              ) : (
-                <>
-                  {isCountDown ? <ArrowDownCircle size={14} color={gradient[0]} /> : <ArrowUpCircle size={14} color={gradient[0]} />}
-                  <Text style={[styles.cardSub, { color: colors.text.secondary }]}>
-                    {isCountDown ? "Target Date" : "Since Date"}
-                  </Text>
-                </>
-              )}
-            </View>
-            <Text style={{color: colors.text.dim, fontSize: 11, marginTop: 4}}>{subText}</Text>
-          </View>
-          <View style={styles.cardRight}>
-            {type === 'HABIT' ? (
-              <View style={[styles.checkMock, { borderColor: gradient[1] }]}>
-                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: gradient[0] }} />
-              </View>
-            ) : (
-              <Text style={[styles.daysBig, { color: gradient[0] }]}>
-                {daysInput}
-              </Text>
-            )}
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  // Determine if inputs are blocked
   const inputsDisabled = type === 'HABIT' && isInfinite;
 
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+
+        {/* HEADER */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>New Tracker</Text>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
@@ -158,9 +94,18 @@ export const CreateTrackerScreen = () => {
         </View>
 
         <ScrollView contentContainerStyle={styles.content}>
-          <PreviewCard />
 
-          {/* NAME */}
+          {/* PREVIEW CARD COMPONENT */}
+          <PreviewCard
+            title={title}
+            type={type}
+            color={selectedColor}
+            daysInput={daysInput}
+            isInfinite={isInfinite}
+            isCountDown={isCountDown}
+          />
+
+          {/* FORM INPUTS */}
           <Text style={styles.label}>Name</Text>
           <TextInput
             style={styles.input}
@@ -170,7 +115,6 @@ export const CreateTrackerScreen = () => {
             onChangeText={setTitle}
           />
 
-          {/* TYPE */}
           <Text style={styles.label}>Type</Text>
           <View style={styles.typeRow}>
             <TouchableOpacity
@@ -189,14 +133,13 @@ export const CreateTrackerScreen = () => {
             </TouchableOpacity>
           </View>
 
-          {/* --- UNIFIED SETTINGS (DATE & DAYS) --- */}
+          {/* SETTINGS SECTION */}
           <View style={styles.section}>
             <View style={styles.rowHeader}>
               <Text style={styles.labelNoMargin}>
                 {type === 'HABIT' ? 'Goal Duration' : 'Target Date'}
               </Text>
 
-              {/* SWITCHES RIGHT IN THE HEADER */}
               {type === 'HABIT' && (
                 <View style={styles.switchContainer}>
                   <Text style={styles.switchSmallText}>Infinite</Text>
@@ -225,10 +168,7 @@ export const CreateTrackerScreen = () => {
               )}
             </View>
 
-            {/* SYNCED INPUT ROW */}
             <View style={[styles.syncRow, inputsDisabled && styles.disabledRow]}>
-
-              {/* Left: Date Button */}
               <TouchableOpacity
                 style={styles.dateFlexButton}
                 onPress={openDatePicker}
@@ -244,7 +184,6 @@ export const CreateTrackerScreen = () => {
                 )}
               </TouchableOpacity>
 
-              {/* Right: Days Input */}
               <View style={styles.daysInputContainer}>
                 {inputsDisabled ? (
                   <Infinity size={24} color={colors.text.dim} />
@@ -304,14 +243,12 @@ export const CreateTrackerScreen = () => {
           <Modal transparent visible={showDatePicker} animationType="fade" onRequestClose={() => setShowDatePicker(false)}>
             <View style={styles.modalOverlay}>
               <View style={styles.modalContent}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>Select Date</Text>
-                </View>
+                <View style={styles.modalHeader}><Text style={styles.modalTitle}>Select Date</Text></View>
                 <DateTimePicker
                   value={tempDate}
                   mode="date"
                   display="spinner"
-                  onChange={onDateChangeIOS}
+                  onChange={(e, d) => d && setTempDate(d)}
                   themeVariant="dark"
                   textColor="#fff"
                   minimumDate={today}
@@ -329,9 +266,8 @@ export const CreateTrackerScreen = () => {
           </Modal>
         )}
 
-        {/* ANDROID DATE PICKER */}
         {Platform.OS === 'android' && showDatePicker && (
-          <DateTimePicker value={endDate} mode="date" display="default" onChange={onDateChangeAndroid} minimumDate={today} />
+          <DateTimePicker value={endDate} mode="date" display="default" onChange={(e, d) => { setShowDatePicker(false); if(d) handleDateConfirm(d); }} minimumDate={today} />
         )}
       </KeyboardAvoidingView>
     </View>
@@ -345,17 +281,6 @@ const styles = StyleSheet.create({
   closeButton: { padding: 4 },
   content: { padding: 20, paddingBottom: 40 },
 
-  previewContainer: { marginBottom: 24, alignItems: 'center' },
-  previewLabel: { color: colors.text.dim, fontSize: 10, textTransform: 'uppercase', marginBottom: 8, letterSpacing: 1 },
-  cardMock: { width: '100%', backgroundColor: 'rgba(20, 25, 30, 0.6)', borderRadius: 16, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderWidth: 1, borderColor: colors.borders.past },
-  cardInfo: { flex: 1 },
-  cardTitle: { color: colors.text.primary, fontSize: 18, fontWeight: '700', marginBottom: 4 },
-  cardStats: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  cardSub: { fontSize: 13 },
-  cardRight: { alignItems: 'flex-end' },
-  checkMock: { width: 36, height: 36, borderRadius: 10, borderWidth: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)' },
-  daysBig: { fontSize: 24, fontWeight: '800' },
-
   label: { color: colors.text.secondary, fontSize: 13, fontWeight: '700', marginBottom: 10, marginTop: 24, textTransform: 'uppercase', letterSpacing: 0.5 },
   labelNoMargin: { color: colors.text.secondary, fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   input: { backgroundColor: '#111', borderWidth: 1, borderColor: colors.borders.past, borderRadius: 12, padding: 16, color: colors.text.primary, fontSize: 16 },
@@ -367,7 +292,6 @@ const styles = StyleSheet.create({
   typeTextActive: { color: colors.text.primary },
   typeSub: { color: colors.text.dim, fontSize: 12 },
 
-  // --- UNIFIED ROW STYLES ---
   section: { marginTop: 24 },
   rowHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   switchContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
