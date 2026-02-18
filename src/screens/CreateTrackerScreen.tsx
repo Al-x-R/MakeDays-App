@@ -4,7 +4,12 @@ import {
   Platform, ScrollView, Switch, Modal
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { X, Check, Calendar as CalendarIcon, Infinity, Hammer, Ban } from 'lucide-react-native';
+import {
+
+  X, Check, Calendar as CalendarIcon, Infinity, Hammer, Ban,
+  Activity, Zap, Heart, Star, Moon, Sun, Coffee, Music, Code,
+  DollarSign, BookOpen, Dumbbell, Briefcase, Smile, Gamepad2
+} from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, addDays, differenceInCalendarDays, startOfDay } from 'date-fns';
@@ -12,6 +17,12 @@ import { useTrackerStore } from '../store/useTrackerStore';
 import colors from '../constants/colors';
 import { TrackerType } from '../types';
 import { PreviewCard } from '../components/PreviewCard';
+
+const ICONS = [
+  'Activity', 'Zap', 'Heart', 'Star', 'Moon', 'Sun',
+  'Coffee', 'Music', 'Code', 'DollarSign', 'BookOpen',
+  'Dumbbell', 'Briefcase', 'Smile', 'Gamepad2'
+] as const;
 
 const COLOR_OPTIONS = ['today', 'purple', 'green', 'orange', 'red', 'pink', 'blue', 'yellow'] as const;
 
@@ -22,35 +33,60 @@ export const CreateTrackerScreen = () => {
 
   // --- STATE ---
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState(''); // New
+  const [selectedIcon, setSelectedIcon] = useState<string>('Activity'); // New
+
   const [type, setType] = useState<TrackerType>('HABIT');
-  const [habitBehavior, setHabitBehavior] = useState<'DO' | 'QUIT'>('DO'); // Новое состояние
+  const [habitBehavior, setHabitBehavior] = useState<'DO' | 'QUIT'>('DO');
   const [selectedColor, setSelectedColor] = useState<string>('today');
 
+  const [startDate, setStartDate] = useState(today); // New
   const [endDate, setEndDate] = useState(addDays(today, 21));
   const [daysInput, setDaysInput] = useState('21');
 
   const [isInfinite, setIsInfinite] = useState(false);
   const [isCountDown, setIsCountDown] = useState(false);
+
+  // Date Picker Logic
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [pickerMode, setPickerMode] = useState<'start' | 'end'>('end');
   const [tempDate, setTempDate] = useState(new Date());
 
   // --- HANDLERS ---
   const handleDaysChange = (text: string) => {
     setDaysInput(text);
     const days = parseInt(text);
-    if (!isNaN(days) && days >= 0) setEndDate(addDays(today, days));
+    if (!isNaN(days) && days >= 0) setEndDate(addDays(startDate, days));
   };
 
   const handleDateConfirm = (date: Date) => {
-    setEndDate(date);
-    setDaysInput(differenceInCalendarDays(date, today).toString());
     setShowDatePicker(false);
+    if (pickerMode === 'start') {
+      setStartDate(date);
+      const days = parseInt(daysInput) || 0;
+      setEndDate(addDays(date, days));
+    } else {
+      setEndDate(date);
+      const diff = differenceInCalendarDays(date, startDate);
+      setDaysInput(diff >= 0 ? diff.toString() : '0');
+    }
+  };
+
+  const openDatePicker = (mode: 'start' | 'end') => {
+    setPickerMode(mode);
+    setTempDate(mode === 'start' ? startDate : endDate);
+    setShowDatePicker(true);
   };
 
   const handleCreate = () => {
     if (!title.trim()) return;
 
-    const config: any = {};
+    const config: any = {
+      description,
+      icon: selectedIcon,
+      startDate: startDate,
+    };
+
     if (type === 'HABIT') {
       config.behavior = habitBehavior;
       config.goalEnabled = !isInfinite;
@@ -64,6 +100,22 @@ export const CreateTrackerScreen = () => {
 
   const inputsDisabled = type === 'HABIT' && isInfinite;
 
+  const renderIconItem = (iconName: string) => {
+    const IconLib = require('lucide-react-native');
+    const IconComp = IconLib[iconName] || Activity;
+    const isSelected = selectedIcon === iconName;
+
+    return (
+      <TouchableOpacity
+        key={iconName}
+        onPress={() => setSelectedIcon(iconName)}
+        style={[styles.iconItem, isSelected && styles.iconItemSelected]}
+      >
+        <IconComp size={20} color={isSelected ? '#fff' : colors.text.dim} />
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
@@ -74,17 +126,22 @@ export const CreateTrackerScreen = () => {
           </TouchableOpacity>
         </View>
 
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
           <PreviewCard
-            title={title} type={type} color={selectedColor}
-            daysInput={daysInput} isInfinite={isInfinite} isCountDown={isCountDown}
-            behavior={habitBehavior} // Передаем поведение в превью
+            title={title}
+            type={type}
+            color={selectedColor}
+            daysInput={daysInput}
+            isInfinite={isInfinite}
+            isCountDown={isCountDown}
+            behavior={habitBehavior}
+            icon={selectedIcon}
           />
 
-          {/* NAME */}
+          {/* NAME & DESCRIPTION */}
           <View style={styles.compactRow}>
-            <Text style={styles.label}>Name</Text>
+            <Text style={styles.label}>Identity</Text>
             <TextInput
               style={styles.inputCompact}
               placeholder="Tracker Name"
@@ -92,86 +149,99 @@ export const CreateTrackerScreen = () => {
               value={title}
               onChangeText={setTitle}
             />
+            <TextInput
+              style={[styles.inputCompact, { marginTop: 8, height: undefined, minHeight: 44 }]}
+              placeholder="Description (optional)"
+              placeholderTextColor={colors.text.dim}
+              value={description}
+              onChangeText={setDescription}
+              multiline
+            />
           </View>
 
           {/* TYPE SELECTOR */}
           <View style={styles.compactRow}>
-            <Text style={styles.label}>Type</Text>
+            <Text style={styles.label}>Type & Mode</Text>
             <View style={styles.row}>
-              <TouchableOpacity
-                style={[styles.selectBtn, type === 'HABIT' && styles.selectBtnActive]}
-                onPress={() => setType('HABIT')}
-              >
+              <TouchableOpacity style={[styles.selectBtn, type === 'HABIT' && styles.selectBtnActive]} onPress={() => setType('HABIT')}>
                 <Text style={[styles.selectBtnText, type === 'HABIT' && styles.selectBtnTextActive]}>Habit</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.selectBtn, type === 'EVENT' && styles.selectBtnActive]}
-                onPress={() => setType('EVENT')}
-              >
+              <TouchableOpacity style={[styles.selectBtn, type === 'EVENT' && styles.selectBtnActive]} onPress={() => setType('EVENT')}>
                 <Text style={[styles.selectBtnText, type === 'EVENT' && styles.selectBtnTextActive]}>Event</Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* MODE SELECTOR (Только для Habit) */}
           {type === 'HABIT' && (
-            <View style={styles.compactRow}>
-              <Text style={styles.label}>Mode</Text>
+            <View style={[styles.compactRow, {marginTop: -6}]}>
               <View style={styles.row}>
-                {/* Build Button */}
-                <TouchableOpacity
-                  style={[styles.modeBtn, habitBehavior === 'DO' && styles.modeBtnActive]}
-                  onPress={() => setHabitBehavior('DO')}
-                >
+                <TouchableOpacity style={[styles.modeBtn, habitBehavior === 'DO' && styles.modeBtnActive]} onPress={() => setHabitBehavior('DO')}>
                   <Hammer size={16} color={habitBehavior === 'DO' ? colors.text.primary : colors.text.dim} />
-                  <View>
-                    <Text style={[styles.modeTitle, habitBehavior === 'DO' && styles.modeTitleActive]}>Build</Text>
-                    <Text style={styles.modeSub}>Check-in</Text>
-                  </View>
+                  <Text style={[styles.modeTitle, habitBehavior === 'DO' && styles.modeTitleActive]}>Build</Text>
                 </TouchableOpacity>
 
-                {/* Quit Button */}
-                <TouchableOpacity
-                  style={[styles.modeBtn, habitBehavior === 'QUIT' && styles.modeBtnQuitActive]}
-                  onPress={() => setHabitBehavior('QUIT')}
-                >
+                <TouchableOpacity style={[styles.modeBtn, habitBehavior === 'QUIT' && styles.modeBtnQuitActive]} onPress={() => setHabitBehavior('QUIT')}>
                   <Ban size={16} color={habitBehavior === 'QUIT' ? colors.gradients.red[0] : colors.text.dim} />
-                  <View>
-                    <Text style={[styles.modeTitle, habitBehavior === 'QUIT' && styles.modeTitleActive]}>Quit</Text>
-                    <Text style={styles.modeSub}>Don't do it</Text>
-                  </View>
+                  <Text style={[styles.modeTitle, habitBehavior === 'QUIT' && styles.modeTitleActive]}>Quit</Text>
                 </TouchableOpacity>
               </View>
             </View>
           )}
 
-          {/* SETTINGS (Goal / Target) */}
+          {/* DATES & GOALS */}
           <View style={styles.compactSection}>
             <View style={styles.rowHeader}>
-              <Text style={styles.label}>{type === 'HABIT' ? 'Goal' : 'Target'}</Text>
-
+              <Text style={styles.label}>{type === 'HABIT' ? 'Duration' : 'Timeline'}</Text>
               {type === 'HABIT' && (
-                <View style={styles.switchContainer}>
-                  <Text style={styles.switchText}>Infinite</Text>
-                  <Switch value={isInfinite} onValueChange={setIsInfinite} trackColor={{false:'#333', true:colors.gradients.today[1]}} style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }} />
-                </View>
+                <View style={styles.switchContainer}><Text style={styles.switchText}>Infinite</Text><Switch value={isInfinite} onValueChange={setIsInfinite} trackColor={{false:'#333', true:colors.gradients.today[1]}} style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }} /></View>
               )}
               {type === 'EVENT' && (
-                <View style={styles.switchContainer}>
-                  <Text style={styles.switchText}>Timer</Text>
-                  <Switch value={isCountDown} onValueChange={setIsCountDown} trackColor={{false:'#333', true:colors.gradients.future[1]}} style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }} />
-                </View>
+                <View style={styles.switchContainer}><Text style={styles.switchText}>Countdown</Text><Switch value={isCountDown} onValueChange={setIsCountDown} trackColor={{false:'#333', true:colors.gradients.future[1]}} style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }} /></View>
               )}
             </View>
 
-            <View style={[styles.syncRow, inputsDisabled && { opacity: 0.3 }]}>
-              <TouchableOpacity style={styles.dateBtn} onPress={() => { setTempDate(endDate); setShowDatePicker(true); }} disabled={inputsDisabled}>
-                {inputsDisabled ? <Infinity size={20} color={colors.text.dim} /> : <><CalendarIcon color={colors.gradients.today[0]} size={18} /><Text style={styles.dateText}>{format(endDate, 'MMM dd')}</Text></>}
+            <View style={styles.row}>
+              {/* Start Date Button */}
+              <TouchableOpacity style={styles.dateBtn} onPress={() => openDatePicker('start')}>
+                <Text style={styles.dateLabelSmall}>Start</Text>
+                <View style={{flexDirection:'row', alignItems:'center', gap: 6}}>
+                  <CalendarIcon color={colors.text.secondary} size={16} />
+                  <Text style={styles.dateText}>{format(startDate, 'MMM dd')}</Text>
+                </View>
               </TouchableOpacity>
-              <View style={styles.daysContainer}>
-                {inputsDisabled ? <Infinity size={20} color={colors.text.dim} /> : <><TextInput style={styles.daysInput} value={daysInput} onChangeText={handleDaysChange} keyboardType="numeric" /><Text style={styles.daysSuffix}>d</Text></>}
-              </View>
+
+              {/* End Date Button */}
+              <TouchableOpacity style={[styles.dateBtn, inputsDisabled && {opacity: 0.3}]} onPress={() => openDatePicker('end')} disabled={inputsDisabled}>
+                <Text style={styles.dateLabelSmall}>End</Text>
+                {inputsDisabled ? <Infinity size={18} color={colors.text.dim} /> : (
+                  <View style={{flexDirection:'row', alignItems:'center', gap: 6}}>
+                    <CalendarIcon color={colors.gradients.today[0]} size={16} />
+                    <Text style={[styles.dateText, {color: colors.text.primary}]}>{format(endDate, 'MMM dd')}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
             </View>
+
+            {/* Days Input (Optional visual aid) */}
+            {!inputsDisabled && (
+              <View style={styles.daysBubble}>
+                <TextInput
+                  style={styles.daysInputClean}
+                  value={daysInput}
+                  onChangeText={handleDaysChange}
+                  keyboardType="numeric"
+                />
+                <Text style={styles.daysSuffixClean}>total days</Text>
+              </View>
+            )}
+          </View>
+
+          {/* ICON SELECTOR */}
+          <View style={styles.compactRow}>
+            <Text style={styles.label}>Icon</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.iconScroll}>
+              {ICONS.map(renderIconItem)}
+            </ScrollView>
           </View>
 
           {/* COLORS */}
@@ -197,16 +267,20 @@ export const CreateTrackerScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* MODALS */}
+        {/* MODAL DATE PICKER */}
         {Platform.OS === 'ios' && (
           <Modal transparent visible={showDatePicker} animationType="fade">
             <View style={styles.modalOverlay}><View style={styles.modalContent}>
-              <DateTimePicker value={tempDate} mode="date" display="spinner" onChange={(e,d) => d && setTempDate(d)} themeVariant="dark" textColor="#fff" minimumDate={today} />
-              <View style={styles.modalButtons}><TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.btnCancel}><Text style={styles.btnText}>Cancel</Text></TouchableOpacity><TouchableOpacity onPress={() => handleDateConfirm(tempDate)} style={styles.btnConfirm}><Text style={styles.btnTextBold}>Confirm</Text></TouchableOpacity></View>
+              <Text style={styles.modalTitle}>{pickerMode === 'start' ? 'Start Date' : 'Target Date'}</Text>
+              <DateTimePicker value={tempDate} mode="date" display="spinner" onChange={(e,d) => d && setTempDate(d)} themeVariant="dark" textColor="#fff" />
+              <View style={styles.modalButtons}>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.btnCancel}><Text style={styles.btnText}>Cancel</Text></TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDateConfirm(tempDate)} style={styles.btnConfirm}><Text style={styles.btnTextBold}>Confirm</Text></TouchableOpacity>
+              </View>
             </View></View>
           </Modal>
         )}
-        {Platform.OS === 'android' && showDatePicker && <DateTimePicker value={endDate} mode="date" display="default" onChange={(e,d) => { setShowDatePicker(false); if(d) handleDateConfirm(d); }} minimumDate={today} />}
+        {Platform.OS === 'android' && showDatePicker && <DateTimePicker value={tempDate} mode="date" display="default" onChange={(e,d) => { if(d) handleDateConfirm(d); else setShowDatePicker(false); }} />}
       </KeyboardAvoidingView>
     </View>
   );
@@ -219,49 +293,40 @@ const styles = StyleSheet.create({
   closeButton: { padding: 4 },
   content: { padding: 16 },
 
-  label: { color: colors.text.secondary, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 6 },
+  label: { color: colors.text.secondary, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 },
   inputCompact: { backgroundColor: '#111', borderWidth: 1, borderColor: colors.borders.past, borderRadius: 8, padding: 12, color: colors.text.primary, fontSize: 16 },
 
-  compactRow: { marginBottom: 12 },
+  compactRow: { marginBottom: 16 },
   row: { flexDirection: 'row', gap: 8 },
 
-  // TYPE BUTTONS
+  // ICONS
+  iconScroll: { gap: 8, paddingRight: 20 },
+  iconItem: { width: 44, height: 44, borderRadius: 8, borderWidth: 1, borderColor: colors.borders.past, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F0F12' },
+  iconItemSelected: { borderColor: colors.gradients.today[0], backgroundColor: 'rgba(0, 210, 255, 0.1)' },
+
   selectBtn: { flex: 1, padding: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.borders.past, backgroundColor: '#0F0F12', alignItems: 'center' },
   selectBtnActive: { borderColor: colors.gradients.today[1], backgroundColor: 'rgba(0, 210, 255, 0.05)' },
   selectBtnText: { color: colors.text.secondary, fontWeight: '600', fontSize: 14 },
   selectBtnTextActive: { color: colors.text.primary },
 
-  // MODE BUTTONS (COMPACT & ROW)
-  modeBtn: {
-    flex: 1,
-    flexDirection: 'row', // В ряд!
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    padding: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.borders.past,
-    backgroundColor: '#0F0F12'
-  },
+  modeBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: colors.borders.past, backgroundColor: '#0F0F12' },
   modeBtnActive: { borderColor: colors.gradients.today[1], backgroundColor: 'rgba(0, 210, 255, 0.05)' },
   modeBtnQuitActive: { borderColor: colors.gradients.red[1], backgroundColor: 'rgba(255, 69, 58, 0.05)' },
-
   modeTitle: { color: colors.text.secondary, fontWeight: '700', fontSize: 13 },
   modeTitleActive: { color: colors.text.primary },
-  modeSub: { color: colors.text.dim, fontSize: 10 },
 
-  compactSection: { marginBottom: 12 },
-  rowHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  compactSection: { marginBottom: 16 },
+  rowHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   switchContainer: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   switchText: { color: colors.text.dim, fontSize: 11 },
 
-  syncRow: { flexDirection: 'row', gap: 8 },
-  dateBtn: { flex: 2, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#111', borderWidth: 1, borderColor: colors.borders.past, borderRadius: 8, paddingHorizontal: 12, height: 44 },
-  dateText: { color: colors.text.primary, fontSize: 14, fontWeight: '600' },
-  daysContainer: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#111', borderWidth: 1, borderColor: colors.borders.past, borderRadius: 8, paddingHorizontal: 12, height: 44 },
-  daysInput: { flex: 1, color: colors.text.primary, fontSize: 16, fontWeight: '700', textAlign: 'center' },
-  daysSuffix: { color: colors.text.dim, fontSize: 12 },
+  dateBtn: { flex: 1, alignItems: 'flex-start', justifyContent: 'center', backgroundColor: '#111', borderWidth: 1, borderColor: colors.borders.past, borderRadius: 8, padding: 12, height: 56 },
+  dateLabelSmall: { color: colors.text.dim, fontSize: 10, textTransform: 'uppercase', marginBottom: 4 },
+  dateText: { color: colors.text.secondary, fontSize: 15, fontWeight: '600' },
+
+  daysBubble: { alignSelf: 'center', marginTop: -12, backgroundColor: '#1A1A1E', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.borders.past, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  daysInputClean: { color: colors.text.primary, fontSize: 12, fontWeight: '700', minWidth: 16, textAlign: 'center' },
+  daysSuffixClean: { color: colors.text.dim, fontSize: 11 },
 
   colorsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   colorCircle: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center', opacity: 0.5 },
@@ -273,6 +338,7 @@ const styles = StyleSheet.create({
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
   modalContent: { backgroundColor: '#1A1A1A', borderRadius: 16, padding: 16 },
+  modalTitle: { color: colors.text.primary, fontSize: 18, fontWeight: '700', marginBottom: 10, textAlign: 'center' },
   modalButtons: { flexDirection: 'row', gap: 12, marginTop: 16 },
   btnCancel: { flex: 1, padding: 12, borderRadius: 8, backgroundColor: '#333', alignItems: 'center' },
   btnConfirm: { flex: 1, padding: 12, borderRadius: 8, backgroundColor: colors.gradients.today[1], alignItems: 'center' },

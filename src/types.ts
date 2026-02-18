@@ -22,14 +22,18 @@ export type TrackerType = 'HABIT' | 'EVENT';
 export interface Tracker {
   id: string;
   title: string;
+  description?: string;
+  icon?: string;
   type: TrackerType;
   color?: string;
+  startDate?: string;
+  endDate?: string;
+
   history: Record<string, boolean>;
   createdAt: string;
 
-  endDate?: string;
-  isCountDown?: boolean;
   behavior?: 'DO' | 'QUIT';
+  isCountDown?: boolean;
 
   goal?: {
     enabled: boolean;

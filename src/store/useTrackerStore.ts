@@ -12,6 +12,9 @@ interface TrackerState {
     type: TrackerType,
     color: string,
     config?: {
+      description?: string;
+      icon?: string;
+      startDate?: Date;
       endDate?: Date;
       isCountDown?: boolean;
       goalEnabled?: boolean;
@@ -37,6 +40,9 @@ export const useTrackerStore = create<TrackerState>()(
             {
               id: Date.now().toString(),
               title,
+              description: config?.description,
+              icon: config?.icon || 'Activity',
+              startDate: config?.startDate?.toISOString() || new Date().toISOString(),
               type,
               color,
               history: {},
