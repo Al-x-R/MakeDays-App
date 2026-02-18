@@ -220,30 +220,43 @@ export const CreateTrackerScreen = () => {
               </TouchableOpacity>
 
               {/* End Date Button */}
-              <TouchableOpacity style={[styles.dateBtn, inputsDisabled && {opacity: 0.3}]} onPress={() => openDatePicker('end')} disabled={inputsDisabled}>
+              <TouchableOpacity
+                style={[styles.dateBtn, inputsDisabled && {opacity: 1, backgroundColor: '#0A0A0A', borderColor: '#222'}]}
+                onPress={() => openDatePicker('end')}
+                disabled={inputsDisabled}
+              >
                 <Text style={styles.dateLabelSmall}>End</Text>
-                {inputsDisabled ? <Infinity size={18} color={colors.text.dim} /> : (
-                  <View style={{flexDirection:'row', alignItems:'center', gap: 6}}>
-                    <CalendarIcon color={colors.gradients.today[0]} size={16} />
-                    <Text style={[styles.dateText, {color: colors.text.primary}]}>
-                      {format(endDate, 'MMM dd, yyyy')}
-                    </Text>
-                  </View>
-                )}
+                <View style={{flexDirection:'row', alignItems:'center', gap: 6}}>
+                  {inputsDisabled ? (
+                    <Text style={[styles.dateText, {color: colors.text.dim, fontSize: 18}]}>—</Text>
+                  ) : (
+                    <>
+                      <CalendarIcon color={colors.gradients.today[0]} size={16} />
+                      <Text style={[styles.dateText, {color: colors.text.primary}]}>
+                        {format(endDate, 'MMM dd, yyyy')}
+                      </Text>
+                    </>
+                  )}
+                </View>
               </TouchableOpacity>
             </View>
 
-            {!inputsDisabled && (
-              <View style={styles.daysBubble}>
+            <View style={styles.daysBubble}>
+              {inputsDisabled ? (
+                <Text style={[styles.daysInputClean, {fontSize: 18}]}>∞</Text>
+              ) : (
                 <TextInput
                   style={styles.daysInputClean}
                   value={daysInput}
                   onChangeText={handleDaysChange}
                   keyboardType="numeric"
                 />
-                <Text style={styles.daysSuffixClean}>total days</Text>
-              </View>
-            )}
+              )}
+              <Text style={styles.daysSuffixClean}>
+                {inputsDisabled ? 'duration' : 'total days'}
+              </Text>
+            </View>
+
           </View>
 
           {/* ICON SELECTOR */}
@@ -259,10 +272,7 @@ export const CreateTrackerScreen = () => {
           <View style={styles.colorsGrid}>
             {COLOR_OPTIONS.map((c) => (
               <TouchableOpacity key={c} onPress={() => setSelectedColor(c)}>
-                <LinearGradient
-                  colors={colors.gradients[c as keyof typeof colors.gradients] || colors.gradients.today}
-                  style={[styles.colorCircle, selectedColor === c && styles.colorCircleSelected]}
-                >
+                <LinearGradient colors={colors.gradients[c as keyof typeof colors.gradients] || colors.gradients.today} style={[styles.colorCircle, selectedColor === c && styles.colorCircleSelected]}>
                   {selectedColor === c && <Check color="#fff" size={14} strokeWidth={3} />}
                 </LinearGradient>
               </TouchableOpacity>
@@ -327,51 +337,40 @@ const styles = StyleSheet.create({
 
   label: { color: colors.text.secondary, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 },
   inputCompact: { backgroundColor: '#111', borderWidth: 1, borderColor: colors.borders.past, borderRadius: 8, padding: 12, color: colors.text.primary, fontSize: 16 },
-
   compactRow: { marginBottom: 16 },
   row: { flexDirection: 'row', gap: 8 },
-
   // ICONS
   iconScroll: { gap: 8, paddingRight: 20 },
   iconItem: { width: 44, height: 44, borderRadius: 8, borderWidth: 1, borderColor: colors.borders.past, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F0F12' },
   iconItemSelected: { borderColor: colors.gradients.today[0], backgroundColor: 'rgba(0, 210, 255, 0.1)' },
-
   selectBtn: { flex: 1, padding: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.borders.past, backgroundColor: '#0F0F12', alignItems: 'center' },
   selectBtnActive: { borderColor: colors.gradients.today[1], backgroundColor: 'rgba(0, 210, 255, 0.05)' },
   selectBtnText: { color: colors.text.secondary, fontWeight: '600', fontSize: 14 },
   selectBtnTextActive: { color: colors.text.primary },
-
   modeBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: colors.borders.past, backgroundColor: '#0F0F12' },
   modeBtnActive: { borderColor: colors.gradients.today[1], backgroundColor: 'rgba(0, 210, 255, 0.05)' },
   modeBtnQuitActive: { borderColor: colors.gradients.red[1], backgroundColor: 'rgba(255, 69, 58, 0.05)' },
   modeTitle: { color: colors.text.secondary, fontWeight: '700', fontSize: 13 },
   modeTitleActive: { color: colors.text.primary },
-
   compactSection: { marginBottom: 16 },
   rowHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   switchContainer: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   switchText: { color: colors.text.dim, fontSize: 11 },
-
   dateBtn: { flex: 1, alignItems: 'flex-start', justifyContent: 'center', backgroundColor: '#111', borderWidth: 1, borderColor: colors.borders.past, borderRadius: 8, padding: 12, height: 56 },
   dateLabelSmall: { color: colors.text.dim, fontSize: 10, textTransform: 'uppercase', marginBottom: 4 },
   dateText: { color: colors.text.secondary, fontSize: 14, fontWeight: '600' },
-
-  daysBubble: { alignSelf: 'center', marginTop: -12, backgroundColor: '#1A1A1E', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.borders.past, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  daysBubble: { alignSelf: 'center', marginTop: -8, backgroundColor: '#1A1A1E', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.borders.past, flexDirection: 'row', alignItems: 'center', gap: 4 },
   daysInputClean: { color: colors.text.primary, fontSize: 12, fontWeight: '700', minWidth: 16, textAlign: 'center' },
   daysSuffixClean: { color: colors.text.dim, fontSize: 11 },
-
   colorsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   colorCircle: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center', opacity: 0.5 },
   colorCircleSelected: { opacity: 1, borderWidth: 2, borderColor: '#fff' },
-
   footer: { padding: 16, borderTopWidth: 1, borderColor: colors.borders.past, backgroundColor: colors.background },
   createButton: { padding: 14, borderRadius: 12, alignItems: 'center' },
   createButtonText: { color: colors.text.inverse, fontSize: 16, fontWeight: '800', textTransform: 'uppercase' },
-
   // MODAL
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
   modalContent: { backgroundColor: '#1A1A1A', borderRadius: 16, padding: 16 },
-
   modalHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -379,7 +378,6 @@ const styles = StyleSheet.create({
     marginBottom: 12
   },
   modalTitle: { color: colors.text.primary, fontSize: 18, fontWeight: '700' },
-
   modalBadge: {
     backgroundColor: 'rgba(0, 210, 255, 0.1)',
     paddingHorizontal: 10,
@@ -393,7 +391,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-
   modalButtons: { flexDirection: 'row', gap: 12, marginTop: 16 },
   btnCancel: { flex: 1, padding: 12, borderRadius: 8, backgroundColor: '#333', alignItems: 'center' },
   btnConfirm: { flex: 1, padding: 12, borderRadius: 8, backgroundColor: colors.gradients.today[1], alignItems: 'center' },

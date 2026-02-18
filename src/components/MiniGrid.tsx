@@ -14,8 +14,7 @@ interface MiniGridProps {
 export const MiniGrid = ({ type, color, isCountDown, isChecked, behavior = 'DO' }: MiniGridProps) => {
   const gradient = colors.gradients[color as keyof typeof colors.gradients] || colors.gradients.today;
   const TODAY_INDEX = 13;
-  const QUIT_HISTORY = Array.from({ length: 13 }, (_, i) => i);
-  const DO_HISTORY = [0, 1, 3, 4, 8, 9, 11, 12];
+  const MOCK_HISTORY = [0, 1, 3, 4, 8, 9];
 
   const renderCell = (i: number) => {
     let isActive = false;
@@ -26,22 +25,25 @@ export const MiniGrid = ({ type, color, isCountDown, isChecked, behavior = 'DO' 
 
     if (type === 'HABIT') {
       if (behavior === 'QUIT') {
+        // --- QUIT LOGIC ---
         if (i < TODAY_INDEX) {
           isActive = true;
-          opacity = 0.6;
+          activeColor = colors.gradients.green[0];
+          opacity = 0.5;
         }
+        // Сегодня:
         else if (isToday) {
           if (isChecked) {
             isActive = true;
             activeColor = colors.gradients.red[0];
             opacity = 1;
           } else {
-            isActive = true;
-            opacity = 1;
+            isActive = false;
           }
         }
       } else {
-        if (i < TODAY_INDEX && DO_HISTORY.includes(i)) {
+        // --- BUILD LOGIC ---
+        if (i < TODAY_INDEX && MOCK_HISTORY.includes(i)) {
           isActive = true;
           opacity = 0.5;
         } else if (isToday) {
@@ -49,6 +51,7 @@ export const MiniGrid = ({ type, color, isCountDown, isChecked, behavior = 'DO' 
         }
       }
     } else {
+      // --- EVENT LOGIC ---
       if (isCountDown) {
         if (i >= TODAY_INDEX) { isActive = true; opacity = 0.8; if (isToday) opacity = 1; }
       } else {
@@ -63,8 +66,8 @@ export const MiniGrid = ({ type, color, isCountDown, isChecked, behavior = 'DO' 
           styles.cell,
           isActive && { backgroundColor: activeColor, opacity },
           !isActive && { backgroundColor: bgColor },
-          isToday && !isActive && { borderWidth: 1, borderColor: activeColor },
-          isToday && isActive && behavior === 'QUIT' && isChecked && { backgroundColor: colors.gradients.red[0] }
+          isToday && !isActive && { borderWidth: 1, borderColor: behavior === 'QUIT' ? colors.gradients.green[0] : gradient[0] },
+          isToday && isActive && behavior === 'QUIT' && { borderWidth: 0 } // Убираем рамку если залито красным
         ]}
       />
     );
