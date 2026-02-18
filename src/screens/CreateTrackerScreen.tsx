@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
-
   X, Check, Calendar as CalendarIcon, Infinity, Hammer, Ban,
   Activity, Zap, Heart, Star, Moon, Sun, Coffee, Music, Code,
   DollarSign, BookOpen, Dumbbell, Briefcase, Smile, Gamepad2
@@ -33,21 +32,20 @@ export const CreateTrackerScreen = () => {
 
   // --- STATE ---
   const [title, setTitle] = useState('');
-  const [description, setDescription] = useState(''); // New
-  const [selectedIcon, setSelectedIcon] = useState<string>('Activity'); // New
+  const [description, setDescription] = useState('');
+  const [selectedIcon, setSelectedIcon] = useState<string>('Activity');
 
   const [type, setType] = useState<TrackerType>('HABIT');
   const [habitBehavior, setHabitBehavior] = useState<'DO' | 'QUIT'>('DO');
   const [selectedColor, setSelectedColor] = useState<string>('today');
 
-  const [startDate, setStartDate] = useState(today); // New
+  const [startDate, setStartDate] = useState(today);
   const [endDate, setEndDate] = useState(addDays(today, 21));
   const [daysInput, setDaysInput] = useState('21');
 
   const [isInfinite, setIsInfinite] = useState(false);
   const [isCountDown, setIsCountDown] = useState(false);
 
-  // Date Picker Logic
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerMode, setPickerMode] = useState<'start' | 'end'>('end');
   const [tempDate, setTempDate] = useState(new Date());
@@ -69,6 +67,20 @@ export const CreateTrackerScreen = () => {
       setEndDate(date);
       const diff = differenceInCalendarDays(date, startDate);
       setDaysInput(diff >= 0 ? diff.toString() : '0');
+    }
+  };
+
+  const getModalDifference = () => {
+    if (pickerMode === 'start') {
+      const diff = differenceInCalendarDays(tempDate, today);
+      if (diff === 0) return 'Starts Today';
+      if (diff === 1) return 'Starts Tomorrow';
+      if (diff < 0) return `Started ${Math.abs(diff)} days ago`;
+      return `Starts in ${diff} days`;
+    } else {
+      const diff = differenceInCalendarDays(tempDate, startDate);
+      if (diff <= 0) return 'End > Start';
+      return `${diff} days`;
     }
   };
 
@@ -129,14 +141,9 @@ export const CreateTrackerScreen = () => {
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
           <PreviewCard
-            title={title}
-            type={type}
-            color={selectedColor}
-            daysInput={daysInput}
-            isInfinite={isInfinite}
-            isCountDown={isCountDown}
-            behavior={habitBehavior}
-            icon={selectedIcon}
+            title={title} type={type} color={selectedColor}
+            daysInput={daysInput} isInfinite={isInfinite} isCountDown={isCountDown}
+            behavior={habitBehavior} icon={selectedIcon}
           />
 
           {/* NAME & DESCRIPTION */}
@@ -206,7 +213,9 @@ export const CreateTrackerScreen = () => {
                 <Text style={styles.dateLabelSmall}>Start</Text>
                 <View style={{flexDirection:'row', alignItems:'center', gap: 6}}>
                   <CalendarIcon color={colors.text.secondary} size={16} />
-                  <Text style={styles.dateText}>{format(startDate, 'MMM dd')}</Text>
+                  <Text style={styles.dateText}>
+                    {format(startDate, 'MMM dd, yyyy')}
+                  </Text>
                 </View>
               </TouchableOpacity>
 
@@ -216,13 +225,14 @@ export const CreateTrackerScreen = () => {
                 {inputsDisabled ? <Infinity size={18} color={colors.text.dim} /> : (
                   <View style={{flexDirection:'row', alignItems:'center', gap: 6}}>
                     <CalendarIcon color={colors.gradients.today[0]} size={16} />
-                    <Text style={[styles.dateText, {color: colors.text.primary}]}>{format(endDate, 'MMM dd')}</Text>
+                    <Text style={[styles.dateText, {color: colors.text.primary}]}>
+                      {format(endDate, 'MMM dd, yyyy')}
+                    </Text>
                   </View>
                 )}
               </TouchableOpacity>
             </View>
 
-            {/* Days Input (Optional visual aid) */}
             {!inputsDisabled && (
               <View style={styles.daysBubble}>
                 <TextInput
@@ -249,7 +259,10 @@ export const CreateTrackerScreen = () => {
           <View style={styles.colorsGrid}>
             {COLOR_OPTIONS.map((c) => (
               <TouchableOpacity key={c} onPress={() => setSelectedColor(c)}>
-                <LinearGradient colors={colors.gradients[c as keyof typeof colors.gradients] || colors.gradients.today} style={[styles.colorCircle, selectedColor === c && styles.colorCircleSelected]}>
+                <LinearGradient
+                  colors={colors.gradients[c as keyof typeof colors.gradients] || colors.gradients.today}
+                  style={[styles.colorCircle, selectedColor === c && styles.colorCircleSelected]}
+                >
                   {selectedColor === c && <Check color="#fff" size={14} strokeWidth={3} />}
                 </LinearGradient>
               </TouchableOpacity>
@@ -270,14 +283,33 @@ export const CreateTrackerScreen = () => {
         {/* MODAL DATE PICKER */}
         {Platform.OS === 'ios' && (
           <Modal transparent visible={showDatePicker} animationType="fade">
-            <View style={styles.modalOverlay}><View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>{pickerMode === 'start' ? 'Start Date' : 'Target Date'}</Text>
-              <DateTimePicker value={tempDate} mode="date" display="spinner" onChange={(e,d) => d && setTempDate(d)} themeVariant="dark" textColor="#fff" />
-              <View style={styles.modalButtons}>
-                <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.btnCancel}><Text style={styles.btnText}>Cancel</Text></TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDateConfirm(tempDate)} style={styles.btnConfirm}><Text style={styles.btnTextBold}>Confirm</Text></TouchableOpacity>
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+
+                {/* --- HEADER ROW (TITLE + BADGE) --- */}
+                <View style={styles.modalHeaderRow}>
+                  <Text style={styles.modalTitle}>
+                    {pickerMode === 'start' ? 'Start Date' : 'Target Date'}
+                  </Text>
+                  <View style={styles.modalBadge}>
+                    <Text style={styles.modalBadgeText}>{getModalDifference()}</Text>
+                  </View>
+                </View>
+
+                <DateTimePicker
+                  value={tempDate}
+                  mode="date"
+                  display="spinner"
+                  onChange={(e,d) => d && setTempDate(d)}
+                  themeVariant="dark"
+                  textColor="#fff"
+                />
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.btnCancel}><Text style={styles.btnText}>Cancel</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDateConfirm(tempDate)} style={styles.btnConfirm}><Text style={styles.btnTextBold}>Confirm</Text></TouchableOpacity>
+                </View>
               </View>
-            </View></View>
+            </View>
           </Modal>
         )}
         {Platform.OS === 'android' && showDatePicker && <DateTimePicker value={tempDate} mode="date" display="default" onChange={(e,d) => { if(d) handleDateConfirm(d); else setShowDatePicker(false); }} />}
@@ -322,7 +354,7 @@ const styles = StyleSheet.create({
 
   dateBtn: { flex: 1, alignItems: 'flex-start', justifyContent: 'center', backgroundColor: '#111', borderWidth: 1, borderColor: colors.borders.past, borderRadius: 8, padding: 12, height: 56 },
   dateLabelSmall: { color: colors.text.dim, fontSize: 10, textTransform: 'uppercase', marginBottom: 4 },
-  dateText: { color: colors.text.secondary, fontSize: 15, fontWeight: '600' },
+  dateText: { color: colors.text.secondary, fontSize: 14, fontWeight: '600' },
 
   daysBubble: { alignSelf: 'center', marginTop: -12, backgroundColor: '#1A1A1E', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.borders.past, flexDirection: 'row', alignItems: 'center', gap: 4 },
   daysInputClean: { color: colors.text.primary, fontSize: 12, fontWeight: '700', minWidth: 16, textAlign: 'center' },
@@ -336,9 +368,32 @@ const styles = StyleSheet.create({
   createButton: { padding: 14, borderRadius: 12, alignItems: 'center' },
   createButtonText: { color: colors.text.inverse, fontSize: 16, fontWeight: '800', textTransform: 'uppercase' },
 
+  // MODAL
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
   modalContent: { backgroundColor: '#1A1A1A', borderRadius: 16, padding: 16 },
-  modalTitle: { color: colors.text.primary, fontSize: 18, fontWeight: '700', marginBottom: 10, textAlign: 'center' },
+
+  modalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12
+  },
+  modalTitle: { color: colors.text.primary, fontSize: 18, fontWeight: '700' },
+
+  modalBadge: {
+    backgroundColor: 'rgba(0, 210, 255, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 210, 255, 0.2)',
+  },
+  modalBadgeText: {
+    color: colors.gradients.today[0],
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
   modalButtons: { flexDirection: 'row', gap: 12, marginTop: 16 },
   btnCancel: { flex: 1, padding: 12, borderRadius: 8, backgroundColor: '#333', alignItems: 'center' },
   btnConfirm: { flex: 1, padding: 12, borderRadius: 8, backgroundColor: colors.gradients.today[1], alignItems: 'center' },
