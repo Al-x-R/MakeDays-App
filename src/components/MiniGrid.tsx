@@ -8,25 +8,45 @@ interface MiniGridProps {
   color: string;
   isCountDown: boolean;
   isChecked: boolean;
+  behavior?: 'DO' | 'QUIT';
 }
 
-export const MiniGrid = ({ type, color, isCountDown, isChecked }: MiniGridProps) => {
+export const MiniGrid = ({ type, color, isCountDown, isChecked, behavior = 'DO' }: MiniGridProps) => {
   const gradient = colors.gradients[color as keyof typeof colors.gradients] || colors.gradients.today;
   const TODAY_INDEX = 13;
-  const MOCK_HISTORY = [0, 1, 3, 4, 8, 9];
+  const QUIT_HISTORY = Array.from({ length: 13 }, (_, i) => i);
+  const DO_HISTORY = [0, 1, 3, 4, 8, 9, 11, 12];
 
   const renderCell = (i: number) => {
     let isActive = false;
     let isToday = i === TODAY_INDEX;
     let opacity = 1;
     let bgColor = 'rgba(255, 255, 255, 0.08)';
+    let activeColor = gradient[0];
 
     if (type === 'HABIT') {
-      if (i < TODAY_INDEX && MOCK_HISTORY.includes(i)) {
-        isActive = true;
-        opacity = 0.5;
-      } else if (isToday) {
-        if (isChecked) isActive = true;
+      if (behavior === 'QUIT') {
+        if (i < TODAY_INDEX) {
+          isActive = true;
+          opacity = 0.6;
+        }
+        else if (isToday) {
+          if (isChecked) {
+            isActive = true;
+            activeColor = colors.gradients.red[0];
+            opacity = 1;
+          } else {
+            isActive = true;
+            opacity = 1;
+          }
+        }
+      } else {
+        if (i < TODAY_INDEX && DO_HISTORY.includes(i)) {
+          isActive = true;
+          opacity = 0.5;
+        } else if (isToday) {
+          if (isChecked) isActive = true;
+        }
       }
     } else {
       if (isCountDown) {
@@ -41,9 +61,10 @@ export const MiniGrid = ({ type, color, isCountDown, isChecked }: MiniGridProps)
         key={i}
         style={[
           styles.cell,
-          isActive && { backgroundColor: gradient[0], opacity },
+          isActive && { backgroundColor: activeColor, opacity },
           !isActive && { backgroundColor: bgColor },
-          isToday && !isActive && { borderWidth: 1, borderColor: gradient[0] },
+          isToday && !isActive && { borderWidth: 1, borderColor: activeColor },
+          isToday && isActive && behavior === 'QUIT' && isChecked && { backgroundColor: colors.gradients.red[0] }
         ]}
       />
     );
@@ -65,17 +86,7 @@ export const MiniGrid = ({ type, color, isCountDown, isChecked }: MiniGridProps)
 };
 
 const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    gap: 3,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  cell: {
-    width: 10,
-    height: 10,
-    borderRadius: 2,
-  },
+  container: { justifyContent: 'center', gap: 3 },
+  row: { flexDirection: 'row', gap: 3 },
+  cell: { width: 10, height: 10, borderRadius: 2 },
 });

@@ -16,11 +16,13 @@ interface TrackerState {
       isCountDown?: boolean;
       goalEnabled?: boolean;
       targetDays?: number;
+      behavior?: 'DO' | 'QUIT';
     }
   ) => void;
 
   deleteTracker: (id: string) => void;
   toggleDay: (trackerId: string, date: string) => void;
+  resetTracker: (trackerId: string, date: string) => void;
 }
 
 export const useTrackerStore = create<TrackerState>()(
@@ -41,6 +43,8 @@ export const useTrackerStore = create<TrackerState>()(
               createdAt: new Date().toISOString(),
               endDate: config?.endDate?.toISOString(),
               isCountDown: config?.isCountDown,
+              behavior: config?.behavior || 'DO',
+              lastResetDate: config?.behavior === 'QUIT' ? new Date().toISOString() : undefined,
               goal: {
                 enabled: config?.goalEnabled ?? false,
                 targetValue: config?.targetDays
@@ -66,6 +70,18 @@ export const useTrackerStore = create<TrackerState>()(
           }
 
           return { ...t, history: newHistory };
+        }),
+      })),
+
+      resetTracker: (trackerId, date) => set((state) => ({
+        trackers: state.trackers.map((t) => {
+          if (t.id !== trackerId) return t;
+
+          return {
+            ...t,
+            lastResetDate: new Date().toISOString(),
+            history: { ...t.history, [date]: false }
+          };
         }),
       })),
     }),

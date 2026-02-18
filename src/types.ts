@@ -29,9 +29,11 @@ export interface Tracker {
 
   endDate?: string;
   isCountDown?: boolean;
+  behavior?: 'DO' | 'QUIT';
 
   goal?: {
     enabled: boolean;
     targetValue?: number;
   };
+  lastResetDate?: string;
 }
