@@ -8,6 +8,7 @@ import {
   useWindowDimensions,
   ScrollView
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -21,6 +22,7 @@ const COLS = 7;
 const MONTH_LABEL_WIDTH = 24;
 
 export const YearGrid = () => {
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const months = useGridCalculation();
 
@@ -30,7 +32,7 @@ export const YearGrid = () => {
 
   const handlePress = (day: DayData) => {
     if (!day.date || day.status === 'EMPTY') return;
-    Alert.alert("Дата", format(day.date, 'd MMMM yyyy', { locale: ru }));
+    Alert.alert(t('calendar.dateAlertTitle'), format(day.date, 'd MMMM yyyy', { locale: ru }));
   };
 
   const getCellProps = (status: DayData['status']) => {
@@ -99,7 +101,7 @@ export const YearGrid = () => {
   };
 
   const WeekDaysHeader = () => {
-    const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+    const days = t('calendar.weekdays', { returnObjects: true }) as string[];
     return (
       <View style={styles.headerRow}>
         <View style={{ width: MONTH_LABEL_WIDTH, marginRight: GAP }} />

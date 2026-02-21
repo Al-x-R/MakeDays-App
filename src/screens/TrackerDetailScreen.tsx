@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Edit2, Trash2, TrendingUp, Calendar, CheckCircle } from 'lucide-react-native';
@@ -8,10 +9,10 @@ import colors from '../constants/colors';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 export const TrackerDetailScreen = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
 
-  // Получаем параметры (ID, Title) из навигации
   const { title, type } = route.params as any || { title: 'Tracker', type: 'WILL' };
 
   // Моковые данные для статистики
@@ -37,10 +38,10 @@ export const TrackerDetailScreen = () => {
         <Text style={styles.headerTitle}>{title}</Text>
 
         <View style={styles.actions}>
-          <TouchableOpacity onPress={() => Alert.alert("Edit", "Edit tracker")} style={styles.iconButton}>
+          <TouchableOpacity onPress={() => Alert.alert(t('detail.edit'), t('detail.editMessage'))} style={styles.iconButton}>
             <Edit2 color={colors.text.secondary} size={20} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => Alert.alert("Delete", "Are you sure?")} style={styles.iconButton}>
+          <TouchableOpacity onPress={() => Alert.alert(t('detail.delete'), t('detail.deleteConfirm'))} style={styles.iconButton}>
             <Trash2 color={colors.gradients.red[0]} size={20} />
           </TouchableOpacity>
         </View>
@@ -57,11 +58,11 @@ export const TrackerDetailScreen = () => {
           >
             <View style={styles.statHeader}>
               <TrendingUp size={16} color={colors.gradients.future[0]} />
-              <Text style={styles.statLabel}>Success Rate</Text>
+              <Text style={styles.statLabel}>{t('detail.successRate')}</Text>
             </View>
             <Text style={styles.mainStatValue}>{stats.percentage}%</Text>
             <Text style={styles.statSub}>
-              {stats.completed} check-ins out of {stats.totalDays} days
+              {t('detail.checkInsOutOf', { completed: stats.completed, total: stats.totalDays })}
             </Text>
           </LinearGradient>
 
@@ -70,19 +71,19 @@ export const TrackerDetailScreen = () => {
             <View style={styles.smallStatCard}>
               <Calendar size={16} color={colors.text.dim} />
               <Text style={styles.smallStatValue}>{stats.totalDays}</Text>
-              <Text style={styles.smallStatLabel}>Total Days</Text>
+              <Text style={styles.smallStatLabel}>{t('detail.totalDays')}</Text>
             </View>
             <View style={styles.smallStatCard}>
               <CheckCircle size={16} color={colors.gradients.today[1]} />
               <Text style={[styles.smallStatValue, { color: colors.gradients.today[1] }]}>
                 {stats.streak}
               </Text>
-              <Text style={styles.smallStatLabel}>Current Streak</Text>
+              <Text style={styles.smallStatLabel}>{t('detail.currentStreak')}</Text>
             </View>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Activity History</Text>
+        <Text style={styles.sectionTitle}>{t('detail.activityHistory')}</Text>
 
         {/* СЕТКА (В режиме TRACKER) */}
         {/*<View style={styles.gridContainer}>*/}

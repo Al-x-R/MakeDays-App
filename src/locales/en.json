@@ -1,0 +1,81 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete"
+  },
+  "header": {
+    "title": "MakeDays",
+    "subtitle": "2026",
+    "historyAlertTitle": "History",
+    "historyAlertMessage": "Open list of years or trackers."
+  },
+  "create": {
+    "title": "New Tracker",
+    "preview": "PREVIEW",
+    "defaultName": "Name...",
+    "identity": "Identity",
+    "namePlaceholder": "Tracker Name",
+    "descPlaceholder": "Description (optional)",
+    "typeAndMode": "Type & Mode",
+    "habit": "Habit",
+    "event": "Event",
+    "build": "Build",
+    "quit": "Quit",
+    "duration": "Duration",
+    "timeline": "Timeline",
+    "infinite": "Infinite",
+    "countdown": "Countdown",
+    "start": "Start",
+    "end": "End",
+    "totalDays": "total days",
+    "durationDays": "duration",
+    "icon": "Icon",
+    "color": "Color",
+    "btnStartHabit": "Start Habit",
+    "btnStartQuitting": "Start Quitting",
+    "btnTrackEvent": "Track Event",
+    "startsToday": "Starts Today",
+    "startsTomorrow": "Starts Tomorrow",
+    "startedDaysAgo": "Started {{count}} days ago",
+    "startsInDays": "Starts in {{count}} days",
+    "endAfterStart": "End > Start",
+    "daysCount": "{{count}} days",
+    "startDate": "Start Date",
+    "targetDate": "Target Date"
+  },
+  "card": {
+    "habitBuild": "HABIT • BUILD",
+    "habitQuit": "HABIT • QUIT",
+    "eventLeft": "EVENT • LEFT",
+    "eventPassed": "EVENT • PASSED",
+    "daysWithoutIt": "Days without it",
+    "dailyCheckIn": "Daily check-in",
+    "goal": "Goal: ",
+    "target": "Target: ",
+    "timeRemaining": "Time remaining",
+    "timePassed": "Time passed",
+    "dayStreak": "{{count}} day streak",
+    "trackingEvent": "Tracking event"
+  },
+  "list": {
+    "noTrackers": "No trackers yet.",
+    "pressToCreate": "Press (+) to create one."
+  },
+  "detail": {
+    "edit": "Edit",
+    "editMessage": "Edit tracker",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure?",
+    "successRate": "Success Rate",
+    "checkInsOutOf": "{{completed}} check-ins out of {{total}} days",
+    "totalDays": "Total Days",
+    "currentStreak": "Current Streak",
+    "activityHistory": "Activity History"
+  },
+  "calendar": {
+    "dateAlertTitle": "Date",
+    "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  }
+}

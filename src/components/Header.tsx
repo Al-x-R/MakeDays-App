@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import colors from '../constants/colors';
 import { ChartColumn, LucideColumnsSettings } from 'lucide-react-native';
 import { useNavigationState } from '@react-navigation/native';
@@ -11,27 +12,29 @@ interface HeaderProps {
 }
 
 export const Header = ({
-  title = "MakeDays",
-  subtitle = "2026",
+  title,
+  subtitle,
   onActionPress
 }: HeaderProps) => {
-
+  const { t } = useTranslation();
   const state = useNavigationState(state => state);
   const currentRouteName = state?.routes[state.index]?.name;
+  const displayTitle = title ?? t('header.title');
+  const displaySubtitle = subtitle ?? t('header.subtitle');
 
   const handlePress = () => {
     if (onActionPress) {
       onActionPress();
     } else {
-      Alert.alert("History", "Здесь будет переход к списку всех лет или привычек");
+      Alert.alert(t('header.historyAlertTitle'), t('header.historyAlertMessage'));
     }
   };
 
   return (
     <View style={styles.container}>
       <View>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        <Text style={styles.title}>{displayTitle}</Text>
+        <Text style={styles.subtitle}>{displaySubtitle}</Text>
       </View>
 
       <TouchableOpacity

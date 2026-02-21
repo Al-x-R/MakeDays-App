@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, ScrollView, StyleSheet, Alert, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Header } from '../components/Header';
 import { TrackerCard } from '../components/TrackerCard';
@@ -8,9 +9,10 @@ import { useTrackerStore } from '../store/useTrackerStore';
 import { format } from 'date-fns';
 
 export const ListScreen = ({ navigation }: any) => {
+  const { t } = useTranslation();
   const { trackers, toggleDay } = useTrackerStore();
 
-  const today = format(new Date(), 'yyyy-MM-dd'); // "2026-02-15"
+  const today = format(new Date(), 'yyyy-MM-dd');
 
   const calculateStreak = (history: Record<string, boolean>) => {
     return Object.keys(history).length;
@@ -23,8 +25,8 @@ export const ListScreen = ({ navigation }: any) => {
       <ScrollView contentContainerStyle={styles.scroll}>
         {trackers.length === 0 ? (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No trackers yet.</Text>
-            <Text style={styles.emptySubText}>Press (+) to create one.</Text>
+            <Text style={styles.emptyText}>{t('list.noTrackers')}</Text>
+            <Text style={styles.emptySubText}>{t('list.pressToCreate')}</Text>
           </View>
         ) : (
           trackers.map((t) => (

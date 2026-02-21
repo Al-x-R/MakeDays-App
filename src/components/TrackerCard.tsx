@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Flame, Check, ArrowUpCircle, ArrowDownCircle } from 'lucide-react-native';
 import colors from '../constants/colors';
@@ -25,7 +26,7 @@ export const TrackerCard = ({
   onPress,
   onCheck
 }: TrackerCardProps) => {
-
+  const { t } = useTranslation();
   const activeGradient = type === 'EVENT'
     ? colors.gradients.future
     : colors.gradients.today;
@@ -53,13 +54,13 @@ export const TrackerCard = ({
                 styles.streakText,
                 streak > 0 && { color: colors.text.secondary }
               ]}>
-                {streak} day streak
+                {t('card.dayStreak', { count: streak })}
               </Text>
             </>
           ) : (
             <>
               <ArrowUpCircle size={14} color={colors.gradients.future[0]} />
-              <Text style={styles.streakText}>Tracking event</Text>
+              <Text style={styles.streakText}>{t('card.trackingEvent')}</Text>
             </>
           )}
         </View>

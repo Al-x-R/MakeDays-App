@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check, X as XIcon, Ban, Activity } from 'lucide-react-native';
 import * as Icons from 'lucide-react-native';
@@ -21,7 +22,7 @@ interface PreviewCardProps {
 export const PreviewCard = ({
   title, type, color, daysInput, isInfinite, isCountDown, behavior = 'DO', icon = 'Activity'
 }: PreviewCardProps) => {
-
+  const { t } = useTranslation();
   const [isChecked, setIsChecked] = useState(false);
   const gradient = colors.gradients[color as keyof typeof colors.gradients] || colors.gradients.today;
 
@@ -31,21 +32,14 @@ export const PreviewCard = ({
   let typeLabel = "";
 
   if (type === 'HABIT') {
-    // HABIT
     typeLabel = behavior === 'QUIT' ? "HABIT • QUIT" : "HABIT • BUILD";
-
-    const goalDisplay = isInfinite ? "∞" : `${daysInput} days`;
-
-    if (behavior === 'QUIT') {
-      infoText = `Goal: ${goalDisplay}`;
-    } else {
-      infoText = `Goal: ${goalDisplay}`;
-    }
-
+    const daysNum = parseInt(daysInput, 10) || 0;
+    const goalDisplay = isInfinite ? "∞" : t('create.daysCount', { count: daysNum });
+    infoText = t('card.goal') + goalDisplay;
   } else {
-    // EVENT
     typeLabel = isCountDown ? "EVENT • LEFT" : "EVENT • PASSED";
-    infoText = `Target: ${daysInput} days`; // Или Goal: ...
+    const daysNum = parseInt(daysInput, 10) || 0;
+    infoText = t('card.target') + t('create.daysCount', { count: daysNum });
   }
 
   const IconComponent = (Icons as any)[icon] || Activity;
@@ -82,7 +76,7 @@ export const PreviewCard = ({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>PREVIEW</Text>
+      <Text style={styles.label}>{t('create.preview')}</Text>
       <View style={styles.card}>
 
         {/* --- LEFT: INFO --- */}
@@ -90,7 +84,7 @@ export const PreviewCard = ({
           {/* Row 1: Icon + Name */}
           <View style={styles.titleRow}>
             <IconComponent size={18} color={gradient[0]} style={{marginRight: 6}} />
-            <Text style={styles.title} numberOfLines={1}>{title || "Name..."}</Text>
+            <Text style={styles.title} numberOfLines={1}>{title || t('create.defaultName')}</Text>
           </View>
 
           {/* Row 2: Goal/Target */}

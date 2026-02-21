@@ -1,0 +1,81 @@
+{
+  "common": {
+    "cancel": "Отмена",
+    "confirm": "Готово",
+    "save": "Сохранить",
+    "delete": "Удалить"
+  },
+  "header": {
+    "title": "MakeDays",
+    "subtitle": "2026",
+    "historyAlertTitle": "История",
+    "historyAlertMessage": "Переход к списку лет или трекеров."
+  },
+  "create": {
+    "title": "Новый трекер",
+    "preview": "ПРЕВЬЮ",
+    "defaultName": "Название...",
+    "identity": "Детали",
+    "namePlaceholder": "Название трекера",
+    "descPlaceholder": "Описание (необязательно)",
+    "typeAndMode": "Тип и Режим",
+    "habit": "Привычка",
+    "event": "Событие",
+    "build": "Создать",
+    "quit": "Бросить",
+    "duration": "Длительность",
+    "timeline": "Хронология",
+    "infinite": "Бесконечно",
+    "countdown": "Таймер",
+    "start": "Старт",
+    "end": "Конец",
+    "totalDays": "всего дней",
+    "durationDays": "длительность",
+    "icon": "Иконка",
+    "color": "Цвет",
+    "btnStartHabit": "Начать привычку",
+    "btnStartQuitting": "Бросить привычку",
+    "btnTrackEvent": "Отслеживать событие",
+    "startsToday": "Начинается сегодня",
+    "startsTomorrow": "Начинается завтра",
+    "startedDaysAgo": "Начато {{count}} дн. назад",
+    "startsInDays": "Старт через {{count}} дн.",
+    "endAfterStart": "Конец > Старта",
+    "daysCount": "{{count}} дн.",
+    "startDate": "Дата начала",
+    "targetDate": "Конечная дата"
+  },
+  "card": {
+    "habitBuild": "HABIT • BUILD",
+    "habitQuit": "HABIT • QUIT",
+    "eventLeft": "EVENT • LEFT",
+    "eventPassed": "EVENT • PASSED",
+    "daysWithoutIt": "Дней без срывов",
+    "dailyCheckIn": "Ежедневная отметка",
+    "goal": "Цель: ",
+    "target": "Цель: ",
+    "timeRemaining": "Осталось времени",
+    "timePassed": "Прошло времени",
+    "dayStreak": "{{count}} дн. подряд",
+    "trackingEvent": "Отслеживание события"
+  },
+  "list": {
+    "noTrackers": "Пока нет трекеров.",
+    "pressToCreate": "Нажмите (+), чтобы создать."
+  },
+  "detail": {
+    "edit": "Изменить",
+    "editMessage": "Редактировать трекер",
+    "delete": "Удалить",
+    "deleteConfirm": "Вы уверены?",
+    "successRate": "Успешность",
+    "checkInsOutOf": "{{completed}} отметок из {{total}} дней",
+    "totalDays": "Всего дней",
+    "currentStreak": "Текущая серия",
+    "activityHistory": "История активности"
+  },
+  "calendar": {
+    "dateAlertTitle": "Дата",
+    "weekdays": ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
+  }
+}

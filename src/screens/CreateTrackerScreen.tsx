@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView,
   Platform, ScrollView, Switch, Modal
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   X, Check, Calendar as CalendarIcon, Infinity, Hammer, Ban,
@@ -26,6 +27,7 @@ const ICONS = [
 const COLOR_OPTIONS = ['today', 'purple', 'green', 'orange', 'red', 'pink', 'blue', 'yellow'] as const;
 
 export const CreateTrackerScreen = () => {
+  const { t } = useTranslation();
   const navigation = useNavigation();
   const addTracker = useTrackerStore((state) => state.addTracker);
   const today = startOfDay(new Date());
@@ -73,14 +75,14 @@ export const CreateTrackerScreen = () => {
   const getModalDifference = () => {
     if (pickerMode === 'start') {
       const diff = differenceInCalendarDays(tempDate, today);
-      if (diff === 0) return 'Starts Today';
-      if (diff === 1) return 'Starts Tomorrow';
-      if (diff < 0) return `Started ${Math.abs(diff)} days ago`;
-      return `Starts in ${diff} days`;
+      if (diff === 0) return t('create.startsToday');
+      if (diff === 1) return t('create.startsTomorrow');
+      if (diff < 0) return t('create.startedDaysAgo', { count: Math.abs(diff) });
+      return t('create.startsInDays', { count: diff });
     } else {
       const diff = differenceInCalendarDays(tempDate, startDate);
-      if (diff <= 0) return 'End > Start';
-      return `${diff} days`;
+      if (diff <= 0) return t('create.endAfterStart');
+      return t('create.daysCount', { count: diff });
     }
   };
 
@@ -132,7 +134,7 @@ export const CreateTrackerScreen = () => {
     <View style={styles.container}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>New Tracker</Text>
+          <Text style={styles.headerTitle}>{t('create.title')}</Text>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeButton}>
             <X color={colors.text.secondary} size={24} />
           </TouchableOpacity>
@@ -148,17 +150,17 @@ export const CreateTrackerScreen = () => {
 
           {/* NAME & DESCRIPTION */}
           <View style={styles.compactRow}>
-            <Text style={styles.label}>Identity</Text>
+            <Text style={styles.label}>{t('create.identity')}</Text>
             <TextInput
               style={styles.inputCompact}
-              placeholder="Tracker Name"
+              placeholder={t('create.namePlaceholder')}
               placeholderTextColor={colors.text.dim}
               value={title}
               onChangeText={setTitle}
             />
             <TextInput
               style={[styles.inputCompact, { marginTop: 8, height: undefined, minHeight: 44 }]}
-              placeholder="Description (optional)"
+              placeholder={t('create.descPlaceholder')}
               placeholderTextColor={colors.text.dim}
               value={description}
               onChangeText={setDescription}
@@ -168,13 +170,13 @@ export const CreateTrackerScreen = () => {
 
           {/* TYPE SELECTOR */}
           <View style={styles.compactRow}>
-            <Text style={styles.label}>Type & Mode</Text>
+            <Text style={styles.label}>{t('create.typeAndMode')}</Text>
             <View style={styles.row}>
               <TouchableOpacity style={[styles.selectBtn, type === 'HABIT' && styles.selectBtnActive]} onPress={() => setType('HABIT')}>
-                <Text style={[styles.selectBtnText, type === 'HABIT' && styles.selectBtnTextActive]}>Habit</Text>
+                <Text style={[styles.selectBtnText, type === 'HABIT' && styles.selectBtnTextActive]}>{t('create.habit')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.selectBtn, type === 'EVENT' && styles.selectBtnActive]} onPress={() => setType('EVENT')}>
-                <Text style={[styles.selectBtnText, type === 'EVENT' && styles.selectBtnTextActive]}>Event</Text>
+                <Text style={[styles.selectBtnText, type === 'EVENT' && styles.selectBtnTextActive]}>{t('create.event')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -184,12 +186,12 @@ export const CreateTrackerScreen = () => {
               <View style={styles.row}>
                 <TouchableOpacity style={[styles.modeBtn, habitBehavior === 'DO' && styles.modeBtnActive]} onPress={() => setHabitBehavior('DO')}>
                   <Hammer size={16} color={habitBehavior === 'DO' ? colors.text.primary : colors.text.dim} />
-                  <Text style={[styles.modeTitle, habitBehavior === 'DO' && styles.modeTitleActive]}>Build</Text>
+                  <Text style={[styles.modeTitle, habitBehavior === 'DO' && styles.modeTitleActive]}>{t('create.build')}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity style={[styles.modeBtn, habitBehavior === 'QUIT' && styles.modeBtnQuitActive]} onPress={() => setHabitBehavior('QUIT')}>
                   <Ban size={16} color={habitBehavior === 'QUIT' ? colors.gradients.red[0] : colors.text.dim} />
-                  <Text style={[styles.modeTitle, habitBehavior === 'QUIT' && styles.modeTitleActive]}>Quit</Text>
+                  <Text style={[styles.modeTitle, habitBehavior === 'QUIT' && styles.modeTitleActive]}>{t('create.quit')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -198,19 +200,19 @@ export const CreateTrackerScreen = () => {
           {/* DATES & GOALS */}
           <View style={styles.compactSection}>
             <View style={styles.rowHeader}>
-              <Text style={styles.label}>{type === 'HABIT' ? 'Duration' : 'Timeline'}</Text>
+              <Text style={styles.label}>{type === 'HABIT' ? t('create.duration') : t('create.timeline')}</Text>
               {type === 'HABIT' && (
-                <View style={styles.switchContainer}><Text style={styles.switchText}>Infinite</Text><Switch value={isInfinite} onValueChange={setIsInfinite} trackColor={{false:'#333', true:colors.gradients.today[1]}} style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }} /></View>
+                <View style={styles.switchContainer}><Text style={styles.switchText}>{t('create.infinite')}</Text><Switch value={isInfinite} onValueChange={setIsInfinite} trackColor={{false:'#333', true:colors.gradients.today[1]}} style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }} /></View>
               )}
               {type === 'EVENT' && (
-                <View style={styles.switchContainer}><Text style={styles.switchText}>Countdown</Text><Switch value={isCountDown} onValueChange={setIsCountDown} trackColor={{false:'#333', true:colors.gradients.future[1]}} style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }} /></View>
+                <View style={styles.switchContainer}><Text style={styles.switchText}>{t('create.countdown')}</Text><Switch value={isCountDown} onValueChange={setIsCountDown} trackColor={{false:'#333', true:colors.gradients.future[1]}} style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }} /></View>
               )}
             </View>
 
             <View style={styles.row}>
               {/* Start Date Button */}
               <TouchableOpacity style={styles.dateBtn} onPress={() => openDatePicker('start')}>
-                <Text style={styles.dateLabelSmall}>Start</Text>
+                <Text style={styles.dateLabelSmall}>{t('create.start')}</Text>
                 <View style={{flexDirection:'row', alignItems:'center', gap: 6}}>
                   <CalendarIcon color={colors.text.secondary} size={16} />
                   <Text style={styles.dateText}>
@@ -225,7 +227,7 @@ export const CreateTrackerScreen = () => {
                 onPress={() => openDatePicker('end')}
                 disabled={inputsDisabled}
               >
-                <Text style={styles.dateLabelSmall}>End</Text>
+                <Text style={styles.dateLabelSmall}>{t('create.end')}</Text>
                 <View style={{flexDirection:'row', alignItems:'center', gap: 6}}>
                   {inputsDisabled ? (
                     <Text style={[styles.dateText, {color: colors.text.dim, fontSize: 18}]}>—</Text>
@@ -253,7 +255,7 @@ export const CreateTrackerScreen = () => {
                 />
               )}
               <Text style={styles.daysSuffixClean}>
-                {inputsDisabled ? 'duration' : 'total days'}
+                {inputsDisabled ? t('create.durationDays') : t('create.totalDays')}
               </Text>
             </View>
 
@@ -261,14 +263,14 @@ export const CreateTrackerScreen = () => {
 
           {/* ICON SELECTOR */}
           <View style={styles.compactRow}>
-            <Text style={styles.label}>Icon</Text>
+            <Text style={styles.label}>{t('create.icon')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.iconScroll}>
               {ICONS.map(renderIconItem)}
             </ScrollView>
           </View>
 
           {/* COLORS */}
-          <Text style={[styles.label, { marginTop: 8 }]}>Color</Text>
+          <Text style={[styles.label, { marginTop: 8 }]}>{t('create.color')}</Text>
           <View style={styles.colorsGrid}>
             {COLOR_OPTIONS.map((c) => (
               <TouchableOpacity key={c} onPress={() => setSelectedColor(c)}>
@@ -284,7 +286,7 @@ export const CreateTrackerScreen = () => {
           <TouchableOpacity onPress={handleCreate} disabled={!title.trim()}>
             <LinearGradient colors={title.trim() ? colors.gradients[selectedColor as keyof typeof colors.gradients] || colors.gradients.today : ['#333', '#333']} start={{x:0, y:0}} end={{x:1, y:0}} style={styles.createButton}>
               <Text style={styles.createButtonText}>
-                {type === 'HABIT' ? (habitBehavior === 'QUIT' ? 'Start Quitting' : 'Start Habit') : 'Track Event'}
+                {type === 'HABIT' ? (habitBehavior === 'QUIT' ? t('create.btnStartQuitting') : t('create.btnStartHabit')) : t('create.btnTrackEvent')}
               </Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -299,7 +301,7 @@ export const CreateTrackerScreen = () => {
                 {/* --- HEADER ROW (TITLE + BADGE) --- */}
                 <View style={styles.modalHeaderRow}>
                   <Text style={styles.modalTitle}>
-                    {pickerMode === 'start' ? 'Start Date' : 'Target Date'}
+                    {pickerMode === 'start' ? t('create.startDate') : t('create.targetDate')}
                   </Text>
                   <View style={styles.modalBadge}>
                     <Text style={styles.modalBadgeText}>{getModalDifference()}</Text>
@@ -315,8 +317,8 @@ export const CreateTrackerScreen = () => {
                   textColor="#fff"
                 />
                 <View style={styles.modalButtons}>
-                  <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.btnCancel}><Text style={styles.btnText}>Cancel</Text></TouchableOpacity>
-                  <TouchableOpacity onPress={() => handleDateConfirm(tempDate)} style={styles.btnConfirm}><Text style={styles.btnTextBold}>Confirm</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.btnCancel}><Text style={styles.btnText}>{t('common.cancel')}</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleDateConfirm(tempDate)} style={styles.btnConfirm}><Text style={styles.btnTextBold}>{t('common.confirm')}</Text></TouchableOpacity>
                 </View>
               </View>
             </View>
