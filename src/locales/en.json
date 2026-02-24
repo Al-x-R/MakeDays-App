@@ -72,7 +72,14 @@
     "checkInsOutOf": "{{completed}} check-ins out of {{total}} days",
     "totalDays": "Total Days",
     "currentStreak": "Current Streak",
-    "activityHistory": "Activity History"
+    "activityHistory": "Activity History",
+    "statusPending": "Pending",
+    "statusActive": "Active",
+    "statusCompleted": "Completed",
+    "daysUntilStart": "Days until start",
+    "getReady": "Get ready!",
+    "bestStreak": "Best Streak",
+    "daysClean": "Days clean"
   },
   "calendar": {
     "dateAlertTitle": "Date",

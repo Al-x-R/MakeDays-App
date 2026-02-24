@@ -72,7 +72,14 @@
     "checkInsOutOf": "{{completed}} отметок из {{total}} дней",
     "totalDays": "Всего дней",
     "currentStreak": "Текущая серия",
-    "activityHistory": "История активности"
+    "activityHistory": "История активности",
+    "statusPending": "Ожидание",
+    "statusActive": "Активно",
+    "statusCompleted": "Завершено",
+    "daysUntilStart": "Дней до старта",
+    "getReady": "Приготовьтесь!",
+    "bestStreak": "Рекорд (дней)",
+    "daysClean": "Дней без срывов"
   },
   "calendar": {
     "dateAlertTitle": "Дата",
