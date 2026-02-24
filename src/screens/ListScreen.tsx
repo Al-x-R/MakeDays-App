@@ -37,7 +37,7 @@ export const ListScreen = ({ navigation }: any) => {
               type={t.type}
               streak={calculateStreak(t.history)}
               todayCompleted={!!t.history[today]}
-              onPress={() => navigation.navigate('TrackerDetail', { trackerId: t.id, title: t.title })}
+              onPress={() => navigation.navigate('TrackerDetail', { id: t.id, title: t.title })}
               onCheck={() => toggleDay(t.id, today)}
             />
           ))
