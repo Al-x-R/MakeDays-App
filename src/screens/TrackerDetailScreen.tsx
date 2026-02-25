@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,11 +6,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Edit2, Trash2 } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { differenceInCalendarDays, startOfDay, eachDayOfInterval, format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 import * as Icons from 'lucide-react-native';
 
 import { useTrackerStore } from '../store/useTrackerStore';
 import colors from '../constants/colors';
 import { TrackerGrid } from '../components/TrackerGrid';
+import { ActionModal } from '../components/ActionModal';
 
 export const TrackerDetailScreen = () => {
   const { t } = useTranslation();
@@ -20,6 +22,15 @@ export const TrackerDetailScreen = () => {
 
   const tracker = useTrackerStore((state) => state.trackers.find((t) => t.id === id));
   const deleteTracker = useTrackerStore((state) => state.deleteTracker);
+  const toggleDay = useTrackerStore((state) => state.toggleDay);
+
+  const [modalConfig, setModalConfig] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    onConfirm?: () => void;
+  }>({ visible: false, title: '', message: '' });
 
   useEffect(() => {
     if (!tracker) navigation.goBack();
@@ -30,12 +41,13 @@ export const TrackerDetailScreen = () => {
   const gradient = colors.gradients[tracker.color as keyof typeof colors.gradients] || colors.gradients.today;
   const IconComponent = (Icons as any)[tracker.icon || 'Activity'] || Icons.Activity;
 
+  const start = startOfDay(new Date(tracker.startDate || tracker.createdAt));
+  const end = tracker.endDate ? startOfDay(new Date(tracker.endDate)) : null;
+  const history = tracker.history || {};
+  const activeDates = Object.keys(history).filter(k => history[k]);
+
   const stats = useMemo(() => {
     const today = startOfDay(new Date());
-    const start = startOfDay(new Date(tracker.startDate || tracker.createdAt));
-    const end = tracker.endDate ? startOfDay(new Date(tracker.endDate)) : null;
-    const history = tracker.history || {};
-
     const daysToStart = differenceInCalendarDays(start, today);
     let status: 'PENDING' | 'ACTIVE' | 'COMPLETED' = 'ACTIVE';
 
@@ -49,14 +61,13 @@ export const TrackerDetailScreen = () => {
     let mainValue: string | number = 0;
     let mainLabel = '';
     const subStats: { label: string; value: string | number }[] = [];
-
     const daysSinceStart = eachDayOfInterval({ start, end: today });
 
     if (status === 'PENDING') {
       mainValue = daysToStart;
       mainLabel = t('detail.daysUntilStart', 'Дней до старта');
       subStats.push({ label: t('create.startDate', 'Старт'), value: format(start, 'dd.MM.yyyy') });
-      subStats.push({ label: t('create.typeAndMode', 'Тип'), value: tracker.type === 'EVENT' ? 'EVENT' : tracker.behavior || 'DO' });
+      subStats.push({ label: t('create.typeAndMode', 'Тип'), value: tracker.type === 'EVENT' ? 'EVENT' : (tracker.behavior || 'DO') });
     }
     else if (tracker.type === 'EVENT') {
       const targetDate = end || today;
@@ -120,11 +131,85 @@ export const TrackerDetailScreen = () => {
     ]);
   };
 
+  const handleDayPress = (date: Date) => {
+    const clickedDate = startOfDay(date);
+    const clickedIso = clickedDate.toISOString();
+    const title = format(clickedDate, 'd MMMM yyyy', { locale: ru });
+    const isFuture = clickedDate > startOfDay(new Date());
+
+    let message = '';
+    let confirmText;
+    let onConfirm;
+
+    if (tracker.type === 'EVENT') {
+      if (clickedDate < start) {
+        message = 'Событие тогда еще не началось ⏳\nВсё самое интересное было впереди!';
+      } else {
+        const passed = differenceInCalendarDays(clickedDate, start);
+        if (tracker.isCountDown && end) {
+          const left = differenceInCalendarDays(end, clickedDate);
+          if (left > 0) message = `🗓 Прошло с начала: ${passed} дн.\n🎯 До финиша оставалось: ${left} дн.\n\n💪 Шаг за шагом к цели!`;
+          else if (left === 0) message = `🎉 День X! Тот самый день настал!`;
+          else message = `✅ Событие завершилось!\nНадеюсь, всё прошло просто супер 😎`;
+        } else {
+          message = isFuture
+            ? `🚀 Это будет ${passed}-й день с начала события.\nВсё идет по плану!`
+            : `🚀 Это был ${passed}-й день с начала события.\n\n✨ Время летит, так держать!`;
+        }
+      }
+    } else {
+      if (clickedDate < start) {
+        const daysUntil = differenceInCalendarDays(start, clickedDate);
+        message = `⏳ Трекер еще не стартовал.\nОсталось до начала: ${daysUntil} дн.\n\nНабирайся сил и готовься!`;
+      } else {
+        const passed = differenceInCalendarDays(clickedDate, start) + 1;
+
+        const targetVal = tracker.goal?.enabled ? tracker.goal.targetValue : undefined;
+        const left = targetVal !== undefined ? targetVal - passed : null;
+
+        const isDone = !!history[clickedIso];
+
+        if (isFuture) {
+          const habitStr = tracker.behavior === 'QUIT' ? 'избавления от привычки' : 'выработки привычки';
+          message = `🚀 Это будет ${passed}-й день ${habitStr}.`;
+          if (left !== null && left > 0) {
+            message += `\n\nЕсли дойдешь до него — ты красава! Останется продержаться еще ${left} дн.`;
+          } else {
+            message += `\n\nПродолжай в том же духе, шаг за шагом!`;
+          }
+        } else {
+          onConfirm = () => {
+            toggleDay(tracker.id, clickedIso);
+            setModalConfig(prev => ({ ...prev, visible: false }));
+          };
+
+          if (tracker.behavior === 'QUIT') {
+            if (isDone) {
+              message = `❌ В этот день (${passed}-й с начала) был зафиксирован фейл.\n\nОшибся кнопкой? Хочешь отменить?`;
+              confirmText = "Убрать срыв";
+            } else {
+              message = `🛡️ ${passed}-й день с начала. Ты держался молодцом!\n\nСлучайно сорвался? Можешь отметить этот день как фейл.`;
+              confirmText = "Сорвался";
+            }
+          } else { // DO
+            if (isDone) {
+              message = `✅ ${passed}-й день. Привычка выполнена, ты красава!\n\nХочешь убрать отметку?`;
+              confirmText = "Убрать отметку";
+            } else {
+              message = `⏳ Это твой ${passed}-й день с начала.\n\nХочешь отметить его как выполненный?`;
+              confirmText = "Отметить выполнение";
+            }
+          }
+        }
+      }
+    }
+
+    setModalConfig({ visible: true, title, message, confirmText, onConfirm });
+  };
+
   const statusColor = stats.status === 'PENDING' ? colors.gradients.orange[0] :
     stats.status === 'COMPLETED' ? colors.gradients.green[0] :
       gradient[0];
-
-  const activeDates = Object.keys(tracker.history || {}).filter(k => tracker.history[k]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -143,15 +228,9 @@ export const TrackerDetailScreen = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-        <LinearGradient
-          colors={[`${gradient[0]}20`, `${gradient[0]}05`]}
-          style={[styles.dashboardCard, { borderColor: `${gradient[0]}40` }]}
-        >
+        <LinearGradient colors={[`${gradient[0]}20`, `${gradient[0]}05`]} style={[styles.dashboardCard, { borderColor: `${gradient[0]}40` }]}>
           <View style={styles.cardHeader}>
-            <View style={[styles.iconWrapper, { backgroundColor: `${gradient[0]}30` }]}>
-              <IconComponent size={24} color={gradient[0]} />
-            </View>
+            <View style={[styles.iconWrapper, { backgroundColor: `${gradient[0]}30` }]}><IconComponent size={24} color={gradient[0]} /></View>
             <View style={styles.titleContainer}>
               <Text style={styles.trackerTitle} numberOfLines={1}>{tracker.title}</Text>
               <View style={styles.statusRow}>
@@ -161,9 +240,7 @@ export const TrackerDetailScreen = () => {
             </View>
           </View>
 
-          {tracker.description ? (
-            <Text style={styles.descriptionText} numberOfLines={2}>{tracker.description}</Text>
-          ) : null}
+          {tracker.description ? <Text style={styles.descriptionText} numberOfLines={2}>{tracker.description}</Text> : null}
 
           <View style={styles.mainStatArea}>
             <Text style={styles.mainStatValue}>{stats.mainValue}</Text>
@@ -188,13 +265,23 @@ export const TrackerDetailScreen = () => {
             behavior={tracker.behavior}
             activeDates={activeDates}
             color={tracker.color || 'today'}
-            startDate={tracker.startDate || tracker.createdAt}
-            endDate={tracker.endDate}
-            onDayPress={(date) => Alert.alert('Дата', format(date, 'dd MMMM yyyy'))}
+            startDate={start}
+            endDate={end || undefined}
+            onDayPress={handleDayPress}
           />
         </View>
-
       </ScrollView>
+
+      <ActionModal
+        visible={modalConfig.visible}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        colorGradient={gradient}
+        onClose={() => setModalConfig(prev => ({ ...prev, visible: false }))}
+        onConfirm={modalConfig.onConfirm}
+        confirmText={modalConfig.confirmText}
+      />
+
     </SafeAreaView>
   );
 };
@@ -206,7 +293,6 @@ const styles = StyleSheet.create({
   iconButton: { padding: 4 },
   scrollContent: { paddingBottom: 40, paddingTop: 8 },
 
-  // DASHBOARD CARD
   dashboardCard: { marginHorizontal: 16, padding: 20, borderRadius: 24, borderWidth: 1, marginBottom: 24 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 12 },
   iconWrapper: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
