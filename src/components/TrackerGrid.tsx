@@ -3,9 +3,10 @@ import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions, ScrollVi
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
-  startOfWeek, endOfWeek, eachDayOfInterval, format, startOfDay, addWeeks, max, min
+  startOfWeek, endOfWeek, eachDayOfInterval, format, startOfDay, addDays, max, min, isSameDay
 } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
+import { Flag, Trophy } from 'lucide-react-native';
 import colors from '../constants/colors';
 import { TrackerType } from '../types';
 
@@ -17,6 +18,8 @@ interface TrackerGridProps {
   type: TrackerType;
   isCountDown?: boolean;
   behavior?: 'DO' | 'QUIT';
+  targetDays?: number;
+  goalEnabled?: boolean;
   activeDates: string[];
   color: string;
   startDate: string | Date;
@@ -25,7 +28,7 @@ interface TrackerGridProps {
 }
 
 export const TrackerGrid = ({
-  type, isCountDown, behavior, activeDates, color, startDate, endDate, onDayPress
+  type, behavior, targetDays, goalEnabled, activeDates, color, startDate, endDate, onDayPress
 }: TrackerGridProps) => {
   const { t, i18n } = useTranslation();
   const { width } = useWindowDimensions();
@@ -33,24 +36,32 @@ export const TrackerGrid = ({
   const activeGradient = colors.gradients[color as keyof typeof colors.gradients] || colors.gradients.today;
   const itemWidth = (width - (PADDING * 2) - (GAP * (COLS - 1))) / COLS;
 
-  const days = useMemo(() => {
-    const today = startOfDay(new Date());
-    const start = startOfDay(new Date(startDate));
-    const end = endDate ? startOfDay(new Date(endDate)) : today;
+  const actualStart = startOfDay(new Date(startDate));
+  const today = startOfDay(new Date());
 
-    let rangeStart = start;
-    let rangeEnd = end;
+  const goalEndDate = useMemo(() => {
+    if (type === 'HABIT' && goalEnabled && targetDays && targetDays > 0) {
+      return addDays(actualStart, targetDays - 1);
+    }
+    return null;
+  }, [type, goalEnabled, targetDays, actualStart]);
+
+  const days = useMemo(() => {
+    let rangeStart = min([today, actualStart]);
+    let rangeEnd = today;
 
     if (type === 'HABIT') {
-      rangeStart = min([today, start]);
-      rangeEnd = max([today, addWeeks(start, 3)]);
+      let defaultEnd = endDate ? startOfDay(new Date(endDate)) : today;
+      if (goalEndDate) {
+        defaultEnd = max([defaultEnd, goalEndDate]);
+      }
+      rangeEnd = max([defaultEnd, addWeeks(today, 2), addWeeks(actualStart, 3)]);
     } else if (type === 'EVENT') {
-      if (isCountDown) {
-        rangeStart = min([today, start]);
-        rangeEnd = max([today, end]);
+      if (endDate) {
+        const targetEnd = startOfDay(new Date(endDate));
+        rangeEnd = max([today, targetEnd, addWeeks(targetEnd, 1)]);
       } else {
-        rangeStart = start;
-        rangeEnd = today;
+        rangeEnd = max([today, addWeeks(today, 2)]);
       }
     }
 
@@ -58,81 +69,117 @@ export const TrackerGrid = ({
     const gridEnd = endOfWeek(rangeEnd, { weekStartsOn: 1 });
 
     return eachDayOfInterval({ start: gridStart, end: gridEnd });
-  }, [type, isCountDown, startDate, endDate]);
+  }, [type, startDate, endDate, goalEndDate]);
 
-  const todayIso = startOfDay(new Date()).toISOString();
-  const actualStart = startOfDay(new Date(startDate));
+  const todayIso = today.toISOString();
+
+  const emptyCellBase = {
+    colors: ['rgba(255,255,255,0.06)', 'rgba(255,255,255,0.02)'],
+    textColor: colors.text.dim,
+  };
 
   const getCellProps = (day: Date) => {
     const dayIso = day.toISOString();
     const isToday = dayIso === todayIso;
-    const isPast = day < startOfDay(new Date());
-
-    const isBeforeStart = day < actualStart;
-    const isStartDay = dayIso === actualStart.toISOString();
+    const isPast = day < today;
+    const isStartDay = isSameDay(day, actualStart);
 
     if (type === 'HABIT') {
+      const isBeforeStart = day < actualStart;
+      const isGoalPath = goalEndDate && day >= actualStart && day <= goalEndDate;
+      const isFinishDay = goalEndDate && isSameDay(day, goalEndDate);
       const isActive = activeDates.includes(dayIso);
 
       if (isBeforeStart) {
         return {
-          colors: ['rgba(255,255,255,0.03)', 'rgba(255,255,255,0.03)'],
-          textColor: colors.text.dim,
+          ...emptyCellBase,
           borderWidth: isToday ? 1 : 0,
           borderColor: isToday ? activeGradient[0] : 'transparent',
-          opacity: 0.2
+          opacity: 0.3
         };
+      }
+
+      let borderW = 0;
+      let borderC = 'transparent';
+      let op = isToday ? 1 : 0.4;
+
+      if (isFinishDay) {
+        borderW = 2; borderC = activeGradient[0]; op = 1;
+      } else if (isGoalPath) {
+        borderW = 1; borderC = activeGradient[0];
+        if (!isPast) op = 0.6;
+      } else if (isToday) {
+        borderW = 1; borderC = 'rgba(255,255,255,0.2)';
       }
 
       if (behavior === 'QUIT') {
         if (isActive) {
-          return { colors: colors.gradients.red, textColor: '#fff', opacity: 1, borderWidth: 0 };
+          return { colors: colors.gradients.red, textColor: '#fff', opacity: 1, borderWidth: borderW, borderColor: borderC, isFinish: isFinishDay };
         } else if (isPast || isToday) {
-          return { colors: activeGradient, textColor: colors.text.inverse, opacity: isToday ? 1 : 0.6, borderWidth: 0 };
+          return { colors: activeGradient, textColor: colors.text.inverse, opacity: isToday ? 1 : 0.7, borderWidth: borderW, borderColor: borderC, isFinish: isFinishDay };
         }
       } else {
         if (isActive) {
-          return { colors: activeGradient, textColor: colors.text.inverse, opacity: 1, borderWidth: 0 };
+          return { colors: activeGradient, textColor: colors.text.inverse, opacity: 1, borderWidth: borderW, borderColor: borderC, isFinish: isFinishDay };
         }
       }
 
       return {
-        colors: ['rgba(255,255,255,0.03)', 'rgba(255,255,255,0.03)'],
-        textColor: colors.text.dim,
-        borderWidth: isStartDay || isToday ? 1 : 0,
-        borderColor: isStartDay ? activeGradient[1] : (isToday ? activeGradient[0] : 'transparent'),
-        opacity: isStartDay || isToday ? 1 : 0.4
+        ...emptyCellBase,
+        textColor: isFinishDay ? activeGradient[0] : colors.text.dim,
+        borderWidth: borderW, borderColor: borderC, opacity: op, isFinish: isFinishDay
       };
     }
 
     if (type === 'EVENT') {
-      const end = endDate ? startOfDay(new Date(endDate)) : todayIso;
-      const current = startOfDay(day);
+      const eventEnd = endDate ? startOfDay(new Date(endDate)) : today;
+      const isTargetDay = endDate ? isSameDay(day, eventEnd) : isSameDay(day, actualStart);
 
-      const isTargetDay = dayIso === startOfDay(new Date(isCountDown ? end : startDate)).toISOString();
-      let isWithinTarget = isCountDown
-        ? (current >= startOfDay(new Date()) && current <= startOfDay(new Date(end)))
-        : (current >= actualStart && current <= startOfDay(new Date()));
+      const isEventPath = day >= actualStart && day <= eventEnd;
 
-      if (isWithinTarget) {
-        return {
-          colors: activeGradient,
-          textColor: colors.text.inverse,
-          opacity: (isCountDown && isPast) ? 0.3 : (isPast ? 0.6 : 1),
-          borderWidth: 0
-        };
+      if (isEventPath) {
+        let borderW = 1;
+        let borderC = `${activeGradient[0]}80`;
+        let op = 1;
+        let isFilled = false;
+
+        if (isTargetDay) {
+          borderW = 2; borderC = activeGradient[0]; op = 1;
+        } else if (isToday) {
+          borderW = 1; borderC = 'rgba(255,255,255,0.4)';
+        }
+
+        if (day <= today) {
+          isFilled = true;
+          op = isToday ? 1 : 0.6;
+        } else {
+          isFilled = false;
+          op = 0.6;
+        }
+
+        if (isFilled) {
+          return {
+            colors: activeGradient, textColor: colors.text.inverse,
+            opacity: op, borderWidth: borderW, borderColor: borderC, isEventTarget: isTargetDay
+          };
+        } else {
+          return {
+            ...emptyCellBase,
+            textColor: isTargetDay ? activeGradient[0] : colors.text.dim,
+            borderWidth: borderW, borderColor: borderC, opacity: op, isEventTarget: isTargetDay
+          };
+        }
       }
 
       return {
-        colors: ['rgba(255,255,255,0.03)', 'rgba(255,255,255,0.03)'],
-        textColor: colors.text.dim,
-        borderWidth: isTargetDay || isToday ? 1 : 0,
-        borderColor: isTargetDay ? activeGradient[1] : (isToday ? activeGradient[0] : 'transparent'),
-        opacity: isTargetDay || isToday ? 0.8 : 0.2
+        ...emptyCellBase,
+        borderWidth: isToday ? 1 : 0,
+        borderColor: isToday ? activeGradient[0] : 'transparent',
+        opacity: 0.3, isEventTarget: false
       };
     }
 
-    return { colors: ['transparent', 'transparent'], textColor: 'transparent', borderWidth: 0, borderColor: 'transparent', opacity: 0 };
+    return { ...emptyCellBase, borderWidth: 0, borderColor: 'transparent', opacity: 0.1 };
   };
 
   const locale = i18n.language === 'ru' ? ru : enUS;
@@ -148,7 +195,7 @@ export const TrackerGrid = ({
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.grid}>
         {days.map((day) => {
-          const props = getCellProps(day);
+          const cellProps = getCellProps(day);
           const isFirstOfMonth = day.getDate() === 1;
 
           return (
@@ -158,7 +205,7 @@ export const TrackerGrid = ({
               activeOpacity={0.7}
             >
               <LinearGradient
-                colors={props.colors as unknown as [string, string, ...string[]]}
+                colors={cellProps.colors as unknown as [string, string, ...string[]]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={[
@@ -166,15 +213,21 @@ export const TrackerGrid = ({
                   {
                     width: itemWidth,
                     height: itemWidth / 1.5,
-                    borderWidth: props.borderWidth,
-                    borderColor: props.borderColor,
-                    opacity: props.opacity,
+                    borderWidth: cellProps.borderWidth,
+                    borderColor: cellProps.borderColor,
+                    opacity: cellProps.opacity,
                   },
                 ]}
               >
-                <Text style={[styles.cellText, { color: props.textColor, fontSize: itemWidth * 0.35 }]}>
-                  {format(day, 'd')}
-                </Text>
+                {cellProps.isFinish ? (
+                  <Trophy size={itemWidth * 0.4} color={cellProps.colors[0] === 'rgba(255,255,255,0.06)' ? activeGradient[0] : '#fff'} />
+                ) : cellProps.isEventTarget ? (
+                  <Flag size={itemWidth * 0.4} color={cellProps.textColor} />
+                ) : (
+                  <Text style={[styles.cellText, { color: cellProps.textColor, fontSize: itemWidth * 0.35 }]}>
+                    {format(day, 'd')}
+                  </Text>
+                )}
 
                 {isFirstOfMonth && (
                   <View style={styles.monthBadge}>
@@ -192,13 +245,17 @@ export const TrackerGrid = ({
   );
 };
 
+function addWeeks(date: Date, amount: number): Date {
+  return addDays(date, amount * 7);
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
   headerRow: { flexDirection: 'row', gap: GAP, marginBottom: GAP * 1.5, paddingHorizontal: PADDING },
   weekDayText: { color: colors.text.secondary, textAlign: 'center', fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP, paddingBottom: 20, paddingHorizontal: PADDING },
-  cell: { borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  cell: { borderRadius: 10, justifyContent: 'center', alignItems: 'center', position: 'relative' },
   cellText: { fontWeight: '700' },
-  monthBadge: { position: 'absolute', bottom: -14 },
-  monthText: { fontSize: 9, fontWeight: '800', textTransform: 'uppercase', opacity: 0.6, color: colors.text.dim },
+  monthBadge: { position: 'absolute', bottom: -13, backgroundColor: colors.background, paddingHorizontal: 2, borderRadius: 4 },
+  monthText: { fontSize: 8, fontWeight: '800', textTransform: 'uppercase', color: colors.text.dim, letterSpacing: 0.5 },
 });

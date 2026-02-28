@@ -68,7 +68,7 @@
     "editMessage": "Редактировать трекер",
     "delete": "Удалить",
     "deleteConfirm": "Вы уверены?",
-    "successRate": "Успешность",
+    "successRate": "Прогресс",
     "checkInsOutOf": "{{completed}} отметок из {{total}} дней",
     "totalDays": "Всего дней",
     "currentStreak": "Текущая серия",

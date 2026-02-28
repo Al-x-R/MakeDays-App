@@ -263,6 +263,8 @@ export const TrackerDetailScreen = () => {
             type={tracker.type}
             isCountDown={tracker.isCountDown}
             behavior={tracker.behavior}
+            goalEnabled={tracker.goal?.enabled}
+            targetDays={tracker.goal?.targetValue}
             activeDates={activeDates}
             color={tracker.color || 'today'}
             startDate={start}
