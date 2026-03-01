@@ -8,8 +8,9 @@ import { ListScreen } from '../screens/ListScreen';
 import { TrackerDetailScreen } from '../screens/TrackerDetailScreen';
 import { CalendarScreen } from '../screens/CalendarScreen';
 import { CreateTrackerScreen } from '../screens/CreateTrackerScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 
-import { ListCheck, PlusSquare, CalendarDays } from 'lucide-react-native';
+import { ListCheck, PlusSquare, CalendarDays, User } from 'lucide-react-native';
 import colors from '../constants/colors';
 import { View } from 'react-native';
 
@@ -46,6 +47,7 @@ export const TabNavigator = () => {
         tabBarShowLabel: false,
       }}
     >
+      {/* ТАБ 1: СПИСОК */}
       <Tab.Screen
         name="ListTab"
         component={HomeStackNavigator}
@@ -81,6 +83,15 @@ export const TabNavigator = () => {
           tabBarIcon: ({ color, size }) => <CalendarDays color={color} size={size} />,
         }}
       />
+
+      <Tab.Screen
+        name="Profile"
+        component={SettingsScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+        }}
+      />
+
     </Tab.Navigator>
   );
 };
