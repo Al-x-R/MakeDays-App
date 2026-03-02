@@ -1,9 +1,9 @@
 import React, { useMemo, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Edit2, Trash2 } from 'lucide-react-native';
+import { ArrowLeft, Edit2, Trash2, CheckCircle, MoreVertical } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { differenceInCalendarDays, startOfDay, eachDayOfInterval, format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -24,6 +24,8 @@ export const TrackerDetailScreen = () => {
   const deleteTracker = useTrackerStore((state) => state.deleteTracker);
   const toggleDay = useTrackerStore((state) => state.toggleDay);
 
+  // Стейты
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [modalConfig, setModalConfig] = useState<{
     visible: boolean;
     title: string;
@@ -124,7 +126,26 @@ export const TrackerDetailScreen = () => {
     return { status, statusText, mainValue, mainLabel, subStats };
   }, [tracker, t]);
 
+  // --- MENU HANDLERS ---
+  const handleEdit = () => {
+    setIsMenuVisible(false);
+    Alert.alert('Редактирование', 'Скоро добавим экран редактирования');
+  };
+
+  const handleFinish = () => {
+    setIsMenuVisible(false);
+    Alert.alert(
+      'Завершить трекер?',
+      'Вы больше не сможете отмечать новые дни, но вся история сохранится.',
+      [
+        { text: 'Отмена', style: 'cancel' },
+        { text: 'Завершить', onPress: () => Alert.alert('Ок', 'Скоро добавим логику в стор') }
+      ]
+    );
+  };
+
   const handleDelete = () => {
+    setIsMenuVisible(false);
     Alert.alert(t('detail.delete', 'Удалить'), t('detail.deleteConfirm', 'Вы уверены?'), [
       { text: t('common.cancel', 'Отмена'), style: 'cancel' },
       { text: t('common.delete', 'Удалить'), style: 'destructive', onPress: () => { deleteTracker(tracker.id); } }
@@ -213,18 +234,20 @@ export const TrackerDetailScreen = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+
+      {/* HEDER */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft color={colors.text.primary} size={24} />
         </TouchableOpacity>
-        <View style={styles.actions}>
-          <TouchableOpacity onPress={() => Alert.alert('Edit', 'Скоро')} style={styles.iconButton}>
-            <Edit2 color={colors.text.secondary} size={20} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleDelete} style={styles.iconButton}>
-            <Trash2 color={colors.gradients.red[0]} size={20} />
-          </TouchableOpacity>
-        </View>
+
+        {/* MENU BUTTON */}
+        <TouchableOpacity
+          onPress={() => setIsMenuVisible(true)}
+          style={[styles.menuButton, isMenuVisible && { backgroundColor: `${gradient[0]}30` }]}
+        >
+          <MoreVertical color={isMenuVisible ? gradient[0] : colors.text.primary} size={22} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -274,6 +297,7 @@ export const TrackerDetailScreen = () => {
         </View>
       </ScrollView>
 
+      {/*  ACTION MODAL (Calendar)  */}
       <ActionModal
         visible={modalConfig.visible}
         title={modalConfig.title}
@@ -284,15 +308,43 @@ export const TrackerDetailScreen = () => {
         confirmText={modalConfig.confirmText}
       />
 
+      {/*  DROP-DOWN MENU  */}
+      <Modal visible={isMenuVisible} transparent animationType="fade">
+        <Pressable style={styles.menuOverlay} onPress={() => setIsMenuVisible(false)}>
+          <View style={[styles.dropdownMenu, { borderColor: `${gradient[0]}40` }]}>
+
+            <TouchableOpacity style={styles.menuItem} onPress={handleEdit} activeOpacity={0.7}>
+              <Edit2 size={20} color={colors.text.primary} />
+              <Text style={styles.menuItemText}>Редактировать</Text>
+            </TouchableOpacity>
+
+            <View style={styles.menuDivider} />
+
+            <TouchableOpacity style={styles.menuItem} onPress={handleFinish} activeOpacity={0.7}>
+              <CheckCircle size={20} color={colors.text.primary} />
+              <Text style={styles.menuItemText}>Завершить</Text>
+            </TouchableOpacity>
+
+            <View style={styles.menuDivider} />
+
+            <TouchableOpacity style={styles.menuItem} onPress={handleDelete} activeOpacity={0.7}>
+              <Trash2 size={20} color={colors.gradients.red[0]} />
+              <Text style={[styles.menuItemText, { color: colors.gradients.red[0] }]}>Удалить</Text>
+            </TouchableOpacity>
+
+          </View>
+        </Pressable>
+      </Modal>
+
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8 },
-  actions: { flexDirection: 'row', gap: 12 },
-  iconButton: { padding: 4 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, zIndex: 10 },
+  backButton: { padding: 8 },
+  menuButton: { padding: 8, borderRadius: 12 },
   scrollContent: { paddingBottom: 40, paddingTop: 8 },
 
   dashboardCard: { marginHorizontal: 16, padding: 20, borderRadius: 24, borderWidth: 1, marginBottom: 24 },
@@ -315,5 +367,24 @@ const styles = StyleSheet.create({
   subStatLabel: { color: colors.text.dim, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
 
   sectionTitle: { paddingHorizontal: 20, marginBottom: 16, color: colors.text.secondary, fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
-  gridContainer: { paddingHorizontal: 16 }
+  gridContainer: { paddingHorizontal: 16 },
+
+  menuOverlay: { flex: 1, backgroundColor: 'transparent' },
+  dropdownMenu: {
+    position: 'absolute',
+    top: 60,
+    right: 16,
+    backgroundColor: '#1C1C22',
+    borderRadius: 16,
+    borderWidth: 1,
+    width: 200,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 },
+  menuItemText: { color: colors.text.primary, fontSize: 16, fontWeight: '600' },
+  menuDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginHorizontal: 16 }
 });
