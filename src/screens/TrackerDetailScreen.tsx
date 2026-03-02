@@ -16,7 +16,7 @@ import { ActionModal } from '../components/ActionModal';
 
 export const TrackerDetailScreen = () => {
   const { t } = useTranslation();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const id = route.params?.id;
 
@@ -133,7 +133,7 @@ export const TrackerDetailScreen = () => {
   // --- MENU HANDLERS ---
   const handleEdit = () => {
     setIsMenuVisible(false);
-    Alert.alert('Редактирование', 'Скоро добавим экран редактирования');
+    navigation.navigate('EditTracker', { id: tracker.id });
   };
 
   const handleFinish = () => {

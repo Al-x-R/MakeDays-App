@@ -23,6 +23,19 @@ interface TrackerState {
     }
   ) => void;
 
+  editTracker: (
+    id: string,
+    updates: {
+      title?: string;
+      description?: string;
+      icon?: string;
+      color?: string;
+      startDate?: string;
+      endDate?: string;
+      isCountDown?: boolean;
+    }
+  ) => void;
+
   deleteTracker: (id: string) => void;
   toggleDay: (trackerId: string, date: string) => void;
   finishTracker: (id: string) => void;
@@ -59,6 +72,12 @@ export const useTrackerStore = create<TrackerState>()(
           ],
         }));
       },
+
+      editTracker: (id, updates) => set((state) => ({
+        trackers: state.trackers.map((t) =>
+          t.id === id ? { ...t, ...updates } : t
+        )
+      })),
 
       deleteTracker: (id) => set((state) => ({
         trackers: state.trackers.filter((t) => t.id !== id),

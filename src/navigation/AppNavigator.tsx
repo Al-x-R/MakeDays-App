@@ -9,6 +9,7 @@ import { TrackerDetailScreen } from '../screens/TrackerDetailScreen';
 import { CalendarScreen } from '../screens/CalendarScreen';
 import { CreateTrackerScreen } from '../screens/CreateTrackerScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { EditTrackerScreen } from '../screens/EditTrackerScreen';
 
 import { ListCheck, PlusSquare, CalendarDays, User } from 'lucide-react-native';
 import colors from '../constants/colors';
@@ -106,6 +107,15 @@ export const AppNavigator = () => {
         <RootStack.Screen
           name="CreateTracker"
           component={CreateTrackerScreen}
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom'
+          }}
+        />
+
+        <RootStack.Screen
+          name="EditTracker"
+          component={EditTrackerScreen}
           options={{
             presentation: 'modal',
             animation: 'slide_from_bottom'
