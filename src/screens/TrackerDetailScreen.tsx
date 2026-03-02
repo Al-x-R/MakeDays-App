@@ -23,6 +23,7 @@ export const TrackerDetailScreen = () => {
   const tracker = useTrackerStore((state) => state.trackers.find((t) => t.id === id));
   const deleteTracker = useTrackerStore((state) => state.deleteTracker);
   const toggleDay = useTrackerStore((state) => state.toggleDay);
+  const finishTracker = useTrackerStore((state) => state.finishTracker);
 
   // Стейты
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -53,8 +54,11 @@ export const TrackerDetailScreen = () => {
     const daysToStart = differenceInCalendarDays(start, today);
     let status: 'PENDING' | 'ACTIVE' | 'COMPLETED' = 'ACTIVE';
 
-    if (daysToStart > 0) status = 'PENDING';
-    else if (end && today > end && tracker.type !== 'HABIT') status = 'COMPLETED';
+    if (daysToStart > 0) {
+      status = 'PENDING';
+    } else if (end && today >= end) {
+      status = 'COMPLETED';
+    }
 
     const statusText = status === 'PENDING' ? t('detail.statusPending', 'Ожидание') :
       status === 'COMPLETED' ? t('detail.statusCompleted', 'Завершено') :
@@ -138,8 +142,15 @@ export const TrackerDetailScreen = () => {
       'Завершить трекер?',
       'Вы больше не сможете отмечать новые дни, но вся история сохранится.',
       [
-        { text: 'Отмена', style: 'cancel' },
-        { text: 'Завершить', onPress: () => Alert.alert('Ок', 'Скоро добавим логику в стор') }
+        {
+          text: 'Отмена',
+          style: 'cancel'
+        },
+        {
+          text: 'Завершить',
+          style: 'destructive',
+          onPress: () => finishTracker(tracker.id)
+        }
       ]
     );
   };
@@ -161,6 +172,16 @@ export const TrackerDetailScreen = () => {
     let message = '';
     let confirmText;
     let onConfirm;
+
+    if (stats.status === 'COMPLETED') {
+      setModalConfig({
+        visible: true,
+        title: 'Трекер завершен 🏁',
+        message: 'Вы больше не можете вносить изменения в историю этого трекера.',
+        confirmText: 'Понятно'
+      });
+      return;
+    }
 
     if (tracker.type === 'EVENT') {
       if (clickedDate < start) {

@@ -25,7 +25,8 @@ interface TrackerState {
 
   deleteTracker: (id: string) => void;
   toggleDay: (trackerId: string, date: string) => void;
-  resetTracker: (trackerId: string, date: string) => void;
+  finishTracker: (id: string) => void;
+  clearAll: () => void;
 }
 
 export const useTrackerStore = create<TrackerState>()(
@@ -50,7 +51,6 @@ export const useTrackerStore = create<TrackerState>()(
               endDate: config?.endDate?.toISOString(),
               isCountDown: config?.isCountDown,
               behavior: config?.behavior || 'DO',
-              lastResetDate: config?.behavior === 'QUIT' ? new Date().toISOString() : undefined,
               goal: {
                 enabled: config?.goalEnabled ?? false,
                 targetValue: config?.targetDays
@@ -79,21 +79,17 @@ export const useTrackerStore = create<TrackerState>()(
         }),
       })),
 
-      resetTracker: (trackerId, date) => set((state) => ({
-        trackers: state.trackers.map((t) => {
-          if (t.id !== trackerId) return t;
-
-          return {
-            ...t,
-            lastResetDate: new Date().toISOString(),
-            history: { ...t.history, [date]: false }
-          };
-        }),
+      finishTracker: (id) => set((state) => ({
+        trackers: state.trackers.map((t) =>
+          t.id === id ? { ...t, endDate: new Date().toISOString() } : t
+        )
       })),
+
+      clearAll: () => set({ trackers: [] }),
     }),
     {
-      name: 'tracker-storage', // Name of the key in the phone memory
-      storage: createJSONStorage(() => AsyncStorage), // Using AsyncStorage
+      name: 'tracker-storage',
+      storage: createJSONStorage(() => AsyncStorage),
     }
   )
 );
