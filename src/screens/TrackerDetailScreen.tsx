@@ -26,7 +26,6 @@ export const TrackerDetailScreen = () => {
   const toggleDay = useTrackerStore((state) => state.toggleDay);
   const finishTracker = useTrackerStore((state) => state.finishTracker);
 
-  // Стейты
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [modalConfig, setModalConfig] = useState<{
     visible: boolean;
@@ -36,21 +35,19 @@ export const TrackerDetailScreen = () => {
     onConfirm?: () => void;
   }>({ visible: false, title: '', message: '' });
 
-  useEffect(() => {
-    if (!tracker) navigation.goBack();
-  }, [tracker, navigation]);
+  const gradient = tracker ? (colors.gradients[tracker.color as keyof typeof colors.gradients] || colors.gradients.today) : colors.gradients.today;
+  const IconComponent = tracker ? ((Icons as any)[tracker.icon || 'Activity'] || Icons.Activity) : Icons.Activity;
 
-  if (!tracker) return null;
-
-  const gradient = colors.gradients[tracker.color as keyof typeof colors.gradients] || colors.gradients.today;
-  const IconComponent = (Icons as any)[tracker.icon || 'Activity'] || Icons.Activity;
-
-  const start = startOfDay(new Date(tracker.startDate || tracker.createdAt));
-  const end = tracker.endDate ? startOfDay(new Date(tracker.endDate)) : null;
-  const history = tracker.history || {};
+  const start = tracker ? startOfDay(new Date(tracker.startDate || tracker.createdAt)) : startOfDay(new Date());
+  const end = tracker?.endDate ? startOfDay(new Date(tracker.endDate)) : null;
+  const history = tracker?.history || {};
   const activeDates = Object.keys(history).filter(k => history[k]);
 
   const stats = useMemo(() => {
+    if (!tracker) {
+      return { status: 'ACTIVE' as const, statusText: '', mainValue: 0, mainLabel: '', subStats: [] };
+    }
+
     const today = startOfDay(new Date());
     const daysToStart = differenceInCalendarDays(start, today);
     let status: 'PENDING' | 'ACTIVE' | 'COMPLETED' = 'ACTIVE';
@@ -129,50 +126,42 @@ export const TrackerDetailScreen = () => {
     }
 
     return { status, statusText, mainValue, mainLabel, subStats };
-  }, [tracker, t]);
+  }, [tracker, t, start, end, history]);
 
-  // --- MENU HANDLERS ---
+  useEffect(() => {
+    if (!tracker) navigation.goBack();
+  }, [tracker, navigation]);
+
   const handleEdit = () => {
+    if (!tracker) return;
     setIsMenuVisible(false);
     navigation.navigate('EditTracker', { id: tracker.id });
   };
 
   const handleFinish = () => {
+    if (!tracker) return;
     setIsMenuVisible(false);
     Alert.alert(
       'Завершить трекер?',
       'Вы больше не сможете отмечать новые дни, но вся история сохранится.',
       [
-        {
-          text: 'Отмена',
-          style: 'cancel'
-        },
-        {
-          text: 'Завершить',
-          style: 'destructive',
-          onPress: () => finishTracker(tracker.id)
-        }
+        { text: 'Отмена', style: 'cancel' },
+        { text: 'Завершить', style: 'destructive', onPress: () => finishTracker(tracker.id) }
       ]
     );
   };
 
   const handleDelete = () => {
+    if (!tracker) return;
     setIsMenuVisible(false);
     Alert.alert(t('detail.delete', 'Удалить'), t('detail.deleteConfirm', 'Вы уверены?'), [
       { text: t('common.cancel', 'Отмена'), style: 'cancel' },
-      { text: t('common.delete', 'Удалить'), style: 'destructive', onPress: () => { deleteTracker(tracker.id); } }
+      { text: t('common.delete', 'Удалить'), style: 'destructive', onPress: () => deleteTracker(tracker.id) }
     ]);
   };
 
   const handleDayPress = (date: Date) => {
-    const clickedDate = startOfDay(date);
-    const clickedIso = clickedDate.toISOString();
-    const title = format(clickedDate, 'd MMMM yyyy', { locale: ru });
-    const isFuture = clickedDate > startOfDay(new Date());
-
-    let message = '';
-    let confirmText;
-    let onConfirm;
+    if (!tracker) return;
 
     if (stats.status === 'COMPLETED') {
       setModalConfig({
@@ -183,6 +172,15 @@ export const TrackerDetailScreen = () => {
       });
       return;
     }
+
+    const clickedDate = startOfDay(date);
+    const clickedIso = clickedDate.toISOString();
+    const title = format(clickedDate, 'd MMMM yyyy', { locale: ru });
+    const isFuture = clickedDate > startOfDay(new Date());
+
+    let message = '';
+    let confirmText;
+    let onConfirm;
 
     if (tracker.type === 'EVENT') {
       if (clickedDate < start) {
@@ -250,6 +248,8 @@ export const TrackerDetailScreen = () => {
     setModalConfig({ visible: true, title, message, confirmText, onConfirm });
   };
 
+  if (!tracker) return <View style={styles.container} />;
+
   const statusColor = stats.status === 'PENDING' ? colors.gradients.orange[0] :
     stats.status === 'COMPLETED' ? colors.gradients.green[0] :
       gradient[0];
@@ -257,13 +257,11 @@ export const TrackerDetailScreen = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
 
-      {/* HEDER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft color={colors.text.primary} size={24} />
         </TouchableOpacity>
 
-        {/* MENU BUTTON */}
         <TouchableOpacity
           onPress={() => setIsMenuVisible(true)}
           style={[styles.menuButton, isMenuVisible && { backgroundColor: `${gradient[0]}30` }]}
@@ -319,7 +317,6 @@ export const TrackerDetailScreen = () => {
         </View>
       </ScrollView>
 
-      {/*  ACTION MODAL (Calendar)  */}
       <ActionModal
         visible={modalConfig.visible}
         title={modalConfig.title}
@@ -330,24 +327,27 @@ export const TrackerDetailScreen = () => {
         confirmText={modalConfig.confirmText}
       />
 
-      {/*  DROP-DOWN MENU  */}
       <Modal visible={isMenuVisible} transparent animationType="fade">
         <Pressable style={styles.menuOverlay} onPress={() => setIsMenuVisible(false)}>
           <View style={[styles.dropdownMenu, { borderColor: `${gradient[0]}40` }]}>
 
-            <TouchableOpacity style={styles.menuItem} onPress={handleEdit} activeOpacity={0.7}>
-              <Edit2 size={20} color={colors.text.primary} />
-              <Text style={styles.menuItemText}>Редактировать</Text>
-            </TouchableOpacity>
+            {stats.status !== 'COMPLETED' && (
+              <>
+                <TouchableOpacity style={styles.menuItem} onPress={handleEdit} activeOpacity={0.7}>
+                  <Edit2 size={20} color={colors.text.primary} />
+                  <Text style={styles.menuItemText}>Редактировать</Text>
+                </TouchableOpacity>
 
-            <View style={styles.menuDivider} />
+                <View style={styles.menuDivider} />
 
-            <TouchableOpacity style={styles.menuItem} onPress={handleFinish} activeOpacity={0.7}>
-              <CheckCircle size={20} color={colors.text.primary} />
-              <Text style={styles.menuItemText}>Завершить</Text>
-            </TouchableOpacity>
+                <TouchableOpacity style={styles.menuItem} onPress={handleFinish} activeOpacity={0.7}>
+                  <CheckCircle size={20} color={colors.text.primary} />
+                  <Text style={styles.menuItemText}>Завершить</Text>
+                </TouchableOpacity>
 
-            <View style={styles.menuDivider} />
+                <View style={styles.menuDivider} />
+              </>
+            )}
 
             <TouchableOpacity style={styles.menuItem} onPress={handleDelete} activeOpacity={0.7}>
               <Trash2 size={20} color={colors.gradients.red[0]} />
