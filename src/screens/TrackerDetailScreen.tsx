@@ -1,3 +1,4 @@
+// src/screens/TrackerDetailScreen.tsx
 import React, { useMemo, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';

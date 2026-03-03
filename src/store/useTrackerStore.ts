@@ -25,15 +25,7 @@ interface TrackerState {
 
   editTracker: (
     id: string,
-    updates: {
-      title?: string;
-      description?: string;
-      icon?: string;
-      color?: string;
-      startDate?: string;
-      endDate?: string;
-      isCountDown?: boolean;
-    }
+    updates: Partial<Tracker>
   ) => void;
 
   deleteTracker: (id: string) => void;
