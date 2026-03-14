@@ -10,7 +10,7 @@ import { Flag, Trophy } from 'lucide-react-native';
 import colors from '../constants/colors';
 import { TrackerType } from '../types';
 
-const GAP = 6;
+const GAP = 5;
 const PADDING = 16;
 const COLS = 7;
 
@@ -34,7 +34,8 @@ export const TrackerGrid = ({
   const { width } = useWindowDimensions();
 
   const activeGradient = colors.gradients[color as keyof typeof colors.gradients] || colors.gradients.today;
-  const itemWidth = (width - (PADDING * 2) - (GAP * (COLS - 1))) / COLS;
+  const availableWidth = width - (PADDING * 2);
+  const itemWidth = (availableWidth - (GAP * (COLS - 1))) / COLS - 0.05;
 
   const actualStart = startOfDay(new Date(startDate));
   const today = startOfDay(new Date());
@@ -251,9 +252,9 @@ function addWeeks(date: Date, amount: number): Date {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  headerRow: { flexDirection: 'row', gap: GAP, marginBottom: GAP * 1.5, paddingHorizontal: PADDING },
+  headerRow: { flexDirection: 'row', gap: GAP, marginBottom: GAP * 1.5,  },
   weekDayText: { color: colors.text.secondary, textAlign: 'center', fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP, paddingBottom: 20, paddingHorizontal: PADDING },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP, paddingBottom: 20,  },
   cell: { borderRadius: 10, justifyContent: 'center', alignItems: 'center', position: 'relative' },
   cellText: { fontWeight: '700' },
   monthBadge: { position: 'absolute', bottom: -13, backgroundColor: colors.background, paddingHorizontal: 2, borderRadius: 4 },

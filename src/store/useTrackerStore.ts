@@ -32,6 +32,7 @@ interface TrackerState {
   toggleDay: (trackerId: string, date: string) => void;
   finishTracker: (id: string) => void;
   clearAll: () => void;
+  recordRelapse: (id: string, dateIso: string, newEndDate?: string) => void;
 }
 
 export const useTrackerStore = create<TrackerState>()(
@@ -97,6 +98,16 @@ export const useTrackerStore = create<TrackerState>()(
       })),
 
       clearAll: () => set({ trackers: [] }),
+
+      recordRelapse: (id, dateIso, newEndDate) => set((state) => ({
+        trackers: state.trackers.map((t) =>
+          t.id === id ? {
+            ...t,
+            history: { ...t.history, [dateIso]: true },
+            ...(newEndDate ? { endDate: newEndDate } : {})
+          } : t
+        )
+      })),
     }),
     {
       name: 'tracker-storage',

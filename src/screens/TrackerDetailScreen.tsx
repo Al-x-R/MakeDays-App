@@ -4,9 +4,9 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Pre
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Edit2, Trash2, CheckCircle, MoreVertical } from 'lucide-react-native';
+import { ArrowLeft, Edit2, Trash2, CheckCircle, MoreVertical, Zap } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { differenceInCalendarDays, startOfDay, eachDayOfInterval, format } from 'date-fns';
+import { differenceInCalendarDays, startOfDay, eachDayOfInterval, format, addDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import * as Icons from 'lucide-react-native';
 
@@ -25,6 +25,7 @@ export const TrackerDetailScreen = () => {
   const deleteTracker = useTrackerStore((state) => state.deleteTracker);
   const toggleDay = useTrackerStore((state) => state.toggleDay);
   const finishTracker = useTrackerStore((state) => state.finishTracker);
+  const recordRelapse = useTrackerStore((state) => state.recordRelapse); // <-- ДОБАВИЛИ ЭКШН
 
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [modalConfig, setModalConfig] = useState<{
@@ -44,19 +45,14 @@ export const TrackerDetailScreen = () => {
   const activeDates = Object.keys(history).filter(k => history[k]);
 
   const stats = useMemo(() => {
-    if (!tracker) {
-      return { status: 'ACTIVE' as const, statusText: '', mainValue: 0, mainLabel: '', subStats: [] };
-    }
+    if (!tracker) return { status: 'ACTIVE' as const, statusText: '', mainValue: 0, mainLabel: '', subStats: [] };
 
     const today = startOfDay(new Date());
     const daysToStart = differenceInCalendarDays(start, today);
     let status: 'PENDING' | 'ACTIVE' | 'COMPLETED' = 'ACTIVE';
 
-    if (daysToStart > 0) {
-      status = 'PENDING';
-    } else if (end && today >= end) {
-      status = 'COMPLETED';
-    }
+    if (daysToStart > 0) status = 'PENDING';
+    else if (end && today >= end) status = 'COMPLETED';
 
     const statusText = status === 'PENDING' ? t('detail.statusPending', 'Ожидание') :
       status === 'COMPLETED' ? t('detail.statusCompleted', 'Завершено') :
@@ -141,23 +137,58 @@ export const TrackerDetailScreen = () => {
   const handleFinish = () => {
     if (!tracker) return;
     setIsMenuVisible(false);
-    Alert.alert(
-      'Завершить трекер?',
-      'Вы больше не сможете отмечать новые дни, но вся история сохранится.',
-      [
-        { text: 'Отмена', style: 'cancel' },
-        { text: 'Завершить', style: 'destructive', onPress: () => finishTracker(tracker.id) }
-      ]
-    );
+
+    setModalConfig({
+      visible: true,
+      title: 'Завершить трекер? 🏁',
+      message: 'Вы больше не сможете отмечать новые дни, но вся история сохранится в архиве.',
+      confirmText: 'Завершить',
+      onConfirm: () => {
+        finishTracker(tracker.id);
+        setModalConfig(prev => ({ ...prev, visible: false }));
+      }
+    });
   };
 
   const handleDelete = () => {
     if (!tracker) return;
     setIsMenuVisible(false);
-    Alert.alert(t('detail.delete', 'Удалить'), t('detail.deleteConfirm', 'Вы уверены?'), [
-      { text: t('common.cancel', 'Отмена'), style: 'cancel' },
-      { text: t('common.delete', 'Удалить'), style: 'destructive', onPress: () => deleteTracker(tracker.id) }
-    ]);
+
+    setModalConfig({
+      visible: true,
+      title: t('detail.delete', 'Удалить трекер? 🗑️'),
+      message: t('detail.deleteConfirm', 'Вы уверены, что хотите безвозвратно удалить этот трекер и всю его историю?'),
+      confirmText: t('common.delete', 'Удалить'),
+      onConfirm: () => {
+        deleteTracker(tracker.id);
+        setModalConfig(prev => ({ ...prev, visible: false }));
+      }
+    });
+  };
+
+  const handleRelapse = () => {
+    if (!tracker) return;
+    setIsMenuVisible(false);
+
+    const targetDays = tracker.goal?.enabled ? tracker.goal.targetValue : undefined;
+
+    setModalConfig({
+      visible: true,
+      title: 'Зафиксировать срыв? ⚠️',
+      message: targetDays
+        ? `Текущая серия будет сброшена, а цель отодвинется на ${targetDays} дн. вперед.\n\nЕсли вы решили сдаться окончательно, выберите «Завершить» в меню.`
+        : `Текущая серия будет сброшена.\n\nЕсли вы решили сдаться окончательно, выберите «Завершить» в меню.`,
+      confirmText: 'Сорвался',
+      onConfirm: () => {
+        const todayIso = startOfDay(new Date()).toISOString();
+        let newEndDate;
+        if (targetDays) {
+          newEndDate = addDays(startOfDay(new Date()), targetDays).toISOString();
+        }
+        recordRelapse(tracker.id, todayIso, newEndDate);
+        setModalConfig(prev => ({ ...prev, visible: false }));
+      }
+    });
   };
 
   const handleDayPress = (date: Date) => {
@@ -165,10 +196,7 @@ export const TrackerDetailScreen = () => {
 
     if (stats.status === 'COMPLETED') {
       setModalConfig({
-        visible: true,
-        title: 'Трекер завершен 🏁',
-        message: 'Вы больше не можете вносить изменения в историю этого трекера.',
-        confirmText: 'Понятно'
+        visible: true, title: 'Трекер завершен 🏁', message: 'Вы больше не можете вносить изменения в историю этого трекера.', confirmText: 'Понятно'
       });
       return;
     }
@@ -198,41 +226,34 @@ export const TrackerDetailScreen = () => {
             : `🚀 Это был ${passed}-й день с начала события.\n\n✨ Время летит, так держать!`;
         }
       }
-    } else {
+    } else { // HABIT
       if (clickedDate < start) {
         const daysUntil = differenceInCalendarDays(start, clickedDate);
         message = `⏳ Трекер еще не стартовал.\nОсталось до начала: ${daysUntil} дн.\n\nНабирайся сил и готовься!`;
       } else {
         const passed = differenceInCalendarDays(clickedDate, start) + 1;
-
         const targetVal = tracker.goal?.enabled ? tracker.goal.targetValue : undefined;
         const left = targetVal !== undefined ? targetVal - passed : null;
-
         const isDone = !!history[clickedIso];
 
         if (isFuture) {
           const habitStr = tracker.behavior === 'QUIT' ? 'избавления от привычки' : 'выработки привычки';
           message = `🚀 Это будет ${passed}-й день ${habitStr}.`;
-          if (left !== null && left > 0) {
-            message += `\n\nЕсли дойдешь до него — ты красава! Останется продержаться еще ${left} дн.`;
-          } else {
-            message += `\n\nПродолжай в том же духе, шаг за шагом!`;
-          }
+          if (left !== null && left > 0) message += `\n\nЕсли дойдешь до него — ты красава! Останется продержаться еще ${left} дн.`;
+          else message += `\n\nПродолжай в том же духе, шаг за шагом!`;
         } else {
-          onConfirm = () => {
-            toggleDay(tracker.id, clickedIso);
-            setModalConfig(prev => ({ ...prev, visible: false }));
-          };
 
           if (tracker.behavior === 'QUIT') {
             if (isDone) {
-              message = `❌ В этот день (${passed}-й с начала) был зафиксирован фейл.\n\nОшибся кнопкой? Хочешь отменить?`;
-              confirmText = "Убрать срыв";
+              message = `❌ В этот день (${passed}-й с начала) был зафиксирован срыв.`;
             } else {
-              message = `🛡️ ${passed}-й день с начала. Ты держался молодцом!\n\nСлучайно сорвался? Можешь отметить этот день как фейл.`;
-              confirmText = "Сорвался";
+              message = `🛡️ ${passed}-й день с начала. Ты держался молодцом!`;
             }
-          } else { // DO
+          } else {
+            onConfirm = () => {
+              toggleDay(tracker.id, clickedIso);
+              setModalConfig(prev => ({ ...prev, visible: false }));
+            };
             if (isDone) {
               message = `✅ ${passed}-й день. Привычка выполнена, ты красава!\n\nХочешь убрать отметку?`;
               confirmText = "Убрать отметку";
@@ -256,7 +277,6 @@ export const TrackerDetailScreen = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <ArrowLeft color={colors.text.primary} size={24} />
@@ -339,6 +359,16 @@ export const TrackerDetailScreen = () => {
                 </TouchableOpacity>
 
                 <View style={styles.menuDivider} />
+
+                {tracker.behavior === 'QUIT' && (
+                  <>
+                    <TouchableOpacity style={styles.menuItem} onPress={handleRelapse} activeOpacity={0.7}>
+                      <Zap size={20} color={colors.gradients.orange[0]} />
+                      <Text style={[styles.menuItemText, { color: colors.gradients.orange[0] }]}>Сорвался</Text>
+                    </TouchableOpacity>
+                    <View style={styles.menuDivider} />
+                  </>
+                )}
 
                 <TouchableOpacity style={styles.menuItem} onPress={handleFinish} activeOpacity={0.7}>
                   <CheckCircle size={20} color={colors.text.primary} />
