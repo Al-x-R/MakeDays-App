@@ -231,7 +231,7 @@ export const CreateTrackerScreen = () => {
                 <Text style={styles.dateLabelSmall}>{t('create.end')}</Text>
                 <View style={{flexDirection:'row', alignItems:'center', gap: 6}}>
                   {inputsDisabled ? (
-                    <Text style={[styles.dateText, {color: colors.text.dim, fontSize: 18}]}>—</Text>
+                    <Text style={[styles.dateText, {color: colors.text.dim, fontSize: 18}]}>{t('common.dash')}</Text>
                   ) : (
                     <>
                       <CalendarIcon color={colors.gradients.today[0]} size={16} />
@@ -246,7 +246,7 @@ export const CreateTrackerScreen = () => {
 
             <View style={styles.daysBubble}>
               {inputsDisabled ? (
-                <Text style={[styles.daysInputClean, {fontSize: 18}]}>∞</Text>
+                <Text style={[styles.daysInputClean, {fontSize: 18}]}>{t('common.infinitySymbol')}</Text>
               ) : (
                 <TextInput
                   style={styles.daysInputClean}

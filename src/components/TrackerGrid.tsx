@@ -184,7 +184,7 @@ export const TrackerGrid = ({
   };
 
   const locale = i18n.language === 'ru' ? ru : enUS;
-  const weekDays = (t('calendar.weekdays', { returnObjects: true }) || ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]) as string[];
+  const weekDays = t('calendar.weekdays', { returnObjects: true }) as unknown as string[];
 
   return (
     <View style={styles.container}>

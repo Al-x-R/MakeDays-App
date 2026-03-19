@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Modal, Pre
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Edit2, Trash2, CheckCircle, MoreVertical, Zap } from 'lucide-react-native';
+import { ArrowLeft, Edit2, Trash2, CheckCircle, MoreVertical, RotateCcw } from 'lucide-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { differenceInCalendarDays, startOfDay, eachDayOfInterval, format, addDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -54,9 +54,11 @@ export const TrackerDetailScreen = () => {
     if (daysToStart > 0) status = 'PENDING';
     else if (end && today >= end) status = 'COMPLETED';
 
-    const statusText = status === 'PENDING' ? t('detail.statusPending', 'Ожидание') :
-      status === 'COMPLETED' ? t('detail.statusCompleted', 'Завершено') :
-        t('detail.statusActive', 'Активно');
+    const statusText = status === 'PENDING'
+      ? t('detail.statusPending')
+      : status === 'COMPLETED'
+        ? t('detail.statusCompleted')
+        : t('detail.statusActive');
 
     let mainValue: string | number = 0;
     let mainLabel = '';
@@ -65,9 +67,9 @@ export const TrackerDetailScreen = () => {
 
     if (status === 'PENDING') {
       mainValue = daysToStart;
-      mainLabel = t('detail.daysUntilStart', 'Дней до старта');
-      subStats.push({ label: t('create.startDate', 'Старт'), value: format(start, 'dd.MM.yyyy') });
-      subStats.push({ label: t('create.typeAndMode', 'Тип'), value: tracker.type === 'EVENT' ? 'EVENT' : (tracker.behavior || 'DO') });
+      mainLabel = t('detail.daysUntilStart');
+      subStats.push({ label: t('create.startDate'), value: format(start, 'dd.MM.yyyy') });
+      subStats.push({ label: t('create.typeAndMode'), value: tracker.type === 'EVENT' ? 'EVENT' : (tracker.behavior || 'DO') });
     }
     else if (tracker.type === 'EVENT') {
       const targetDate = end || today;
@@ -77,11 +79,11 @@ export const TrackerDetailScreen = () => {
       const percentage = Math.max(0, Math.min(100, Math.round((passed / totalDays) * 100)));
 
       mainValue = tracker.isCountDown ? Math.max(0, left) : Math.max(0, passed);
-      mainLabel = tracker.isCountDown ? t('detail.daysLeft', 'Осталось дней') : t('detail.daysPassed', 'Прошло дней');
+      mainLabel = tracker.isCountDown ? t('detail.daysLeft') : t('detail.daysPassed');
 
-      subStats.push({ label: t('detail.targetDays', 'Всего дней'), value: totalDays });
-      subStats.push({ label: tracker.isCountDown ? t('detail.targetDate', 'Конец') : t('detail.eventDate', 'Дата'), value: format(targetDate, 'dd.MM.yy') });
-      subStats.push({ label: t('detail.successRate', 'Прогресс'), value: `${percentage}%` });
+      subStats.push({ label: t('detail.targetDays'), value: totalDays });
+      subStats.push({ label: tracker.isCountDown ? t('detail.targetDate') : t('detail.eventDate'), value: format(targetDate, 'dd.MM.yy') });
+      subStats.push({ label: t('detail.successRate'), value: `${percentage}%` });
     }
     else if (tracker.behavior === 'QUIT') {
       let currentCleanStreak = 0;
@@ -94,10 +96,13 @@ export const TrackerDetailScreen = () => {
       });
 
       mainValue = currentCleanStreak;
-      mainLabel = t('detail.daysClean', 'Дней без срывов подряд');
-      subStats.push({ label: t('detail.bestStreak', 'Рекорд'), value: bestCleanStreak });
-      subStats.push({ label: t('detail.totalDays', 'Всего дней'), value: Math.max(1, daysSinceStart.length) });
-      subStats.push({ label: t('card.goal', 'Цель').replace(':', ''), value: tracker.goal?.enabled && tracker.goal.targetValue ? tracker.goal.targetValue : '∞' });
+      mainLabel = t('detail.daysClean');
+      subStats.push({ label: t('detail.bestStreak'), value: bestCleanStreak });
+      subStats.push({ label: t('detail.totalDays'), value: Math.max(1, daysSinceStart.length) });
+      subStats.push({
+        label: t('card.goal').replace(':', '').trim(),
+        value: tracker.goal?.enabled && tracker.goal.targetValue ? tracker.goal.targetValue : t('common.infinitySymbol')
+      });
     }
     else { // HABIT: DO
       let currentStreak = 0;
@@ -115,10 +120,10 @@ export const TrackerDetailScreen = () => {
       const percentage = Math.round((completedCount / totalDays) * 100);
 
       mainValue = currentStreak;
-      mainLabel = t('detail.currentStreak', 'Дней подряд');
-      subStats.push({ label: t('detail.bestStreak', 'Рекорд'), value: bestStreak });
-      subStats.push({ label: t('detail.successRate', 'Успешность'), value: `${percentage}%` });
-      subStats.push({ label: t('detail.totalCheckIns', 'Отметок'), value: completedCount });
+      mainLabel = t('detail.currentStreak');
+      subStats.push({ label: t('detail.bestStreak'), value: bestStreak });
+      subStats.push({ label: t('detail.successRate'), value: `${percentage}%` });
+      subStats.push({ label: t('detail.totalCheckIns'), value: completedCount });
     }
 
     return { status, statusText, mainValue, mainLabel, subStats };
@@ -140,9 +145,9 @@ export const TrackerDetailScreen = () => {
 
     setModalConfig({
       visible: true,
-      title: 'Завершить трекер? 🏁',
-      message: 'Вы больше не сможете отмечать новые дни, но вся история сохранится в архиве.',
-      confirmText: 'Завершить',
+      title: t('detail.finishTitle'),
+      message: t('detail.finishMessage'),
+      confirmText: t('detail.finishConfirm'),
       onConfirm: () => {
         finishTracker(tracker.id);
         setModalConfig(prev => ({ ...prev, visible: false }));
@@ -156,9 +161,9 @@ export const TrackerDetailScreen = () => {
 
     setModalConfig({
       visible: true,
-      title: t('detail.delete', 'Удалить трекер? 🗑️'),
-      message: t('detail.deleteConfirm', 'Вы уверены, что хотите безвозвратно удалить этот трекер и всю его историю?'),
-      confirmText: t('common.delete', 'Удалить'),
+      title: t('detail.delete'),
+      message: t('detail.deleteConfirm'),
+      confirmText: t('common.delete'),
       onConfirm: () => {
         deleteTracker(tracker.id);
         setModalConfig(prev => ({ ...prev, visible: false }));
@@ -174,11 +179,11 @@ export const TrackerDetailScreen = () => {
 
     setModalConfig({
       visible: true,
-      title: 'Зафиксировать срыв? ⚠️',
+      title: t('detail.relapseTitle'),
       message: targetDays
-        ? `Текущая серия будет сброшена, а цель отодвинется на ${targetDays} дн. вперед.\n\nЕсли вы решили сдаться окончательно, выберите «Завершить» в меню.`
-        : `Текущая серия будет сброшена.\n\nЕсли вы решили сдаться окончательно, выберите «Завершить» в меню.`,
-      confirmText: 'Сорвался',
+        ? t('detail.relapseMessageWithTarget', { targetDays, finish: t('detail.finishConfirm') })
+        : t('detail.relapseMessageNoTarget', { finish: t('detail.finishConfirm') }),
+      confirmText: t('detail.relapseConfirm'),
       onConfirm: () => {
         const todayIso = startOfDay(new Date()).toISOString();
         let newEndDate;
@@ -196,7 +201,10 @@ export const TrackerDetailScreen = () => {
 
     if (stats.status === 'COMPLETED') {
       setModalConfig({
-        visible: true, title: 'Трекер завершен 🏁', message: 'Вы больше не можете вносить изменения в историю этого трекера.', confirmText: 'Понятно'
+        visible: true,
+        title: t('detail.completedTitle'),
+        message: t('detail.completedMessage'),
+        confirmText: t('detail.completedConfirm')
       });
       return;
     }
@@ -212,24 +220,28 @@ export const TrackerDetailScreen = () => {
 
     if (tracker.type === 'EVENT') {
       if (clickedDate < start) {
-        message = 'Событие тогда еще не началось ⏳\nВсё самое интересное было впереди!';
+        message = t('detail.eventNotStartedMessage');
       } else {
         const passed = differenceInCalendarDays(clickedDate, start);
         if (tracker.isCountDown && end) {
           const left = differenceInCalendarDays(end, clickedDate);
-          if (left > 0) message = `🗓 Прошло с начала: ${passed} дн.\n🎯 До финиша оставалось: ${left} дн.\n\n💪 Шаг за шагом к цели!`;
-          else if (left === 0) message = `🎉 День X! Тот самый день настал!`;
-          else message = `✅ Событие завершилось!\nНадеюсь, всё прошло просто супер 😎`;
+          if (left > 0) {
+            message = t('detail.eventCountdownMessage', { passed, left });
+          } else if (left === 0) {
+            message = t('detail.eventTargetDateMessage');
+          } else {
+            message = t('detail.eventFinishedMessage');
+          }
         } else {
           message = isFuture
-            ? `🚀 Это будет ${passed}-й день с начала события.\nВсё идет по плану!`
-            : `🚀 Это был ${passed}-й день с начала события.\n\n✨ Время летит, так держать!`;
+            ? t('detail.eventExpectedDayMessage', { passed })
+            : t('detail.eventDayMessage', { passed });
         }
       }
     } else { // HABIT
       if (clickedDate < start) {
         const daysUntil = differenceInCalendarDays(start, clickedDate);
-        message = `⏳ Трекер еще не стартовал.\nОсталось до начала: ${daysUntil} дн.\n\nНабирайся сил и готовься!`;
+        message = t('detail.habitNotStartedMessage', { daysUntil });
       } else {
         const passed = differenceInCalendarDays(clickedDate, start) + 1;
         const targetVal = tracker.goal?.enabled ? tracker.goal.targetValue : undefined;
@@ -237,29 +249,37 @@ export const TrackerDetailScreen = () => {
         const isDone = !!history[clickedIso];
 
         if (isFuture) {
-          const habitStr = tracker.behavior === 'QUIT' ? 'избавления от привычки' : 'выработки привычки';
-          message = `🚀 Это будет ${passed}-й день ${habitStr}.`;
-          if (left !== null && left > 0) message += `\n\nЕсли дойдешь до него — ты красава! Останется продержаться еще ${left} дн.`;
-          else message += `\n\nПродолжай в том же духе, шаг за шагом!`;
+          message = t('detail.habitFutureDayNoGoalMessage', { passed });
+          if (left !== null && left > 0) {
+            message = t('detail.habitFutureDayWithGoalRemainingMessage', { passed, left });
+          }
         } else {
-
           if (tracker.behavior === 'QUIT') {
             if (isDone) {
-              message = `❌ В этот день (${passed}-й с начала) был зафиксирован срыв.`;
+              message = t('detail.habitQuitRelapseDoneMessage', { passed });
             } else {
-              message = `🛡️ ${passed}-й день с начала. Ты держался молодцом!`;
+              message = t('detail.habitQuitRelapseNotDoneMessage', { passed });
             }
-          } else {
+          } else { // behavior === 'DO'
             onConfirm = () => {
               toggleDay(tracker.id, clickedIso);
               setModalConfig(prev => ({ ...prev, visible: false }));
             };
+
             if (isDone) {
-              message = `✅ ${passed}-й день. Привычка выполнена, ты красава!\n\nХочешь убрать отметку?`;
-              confirmText = "Убрать отметку";
+              if (left !== null && left > 0) {
+                message = t('detail.habitDoDoneWithGoalMessage', { passed, left });
+              } else {
+                message = t('detail.habitDoDoneNoGoalMessage', { passed });
+              }
+              confirmText = t('detail.confirmRemove');
             } else {
-              message = `⏳ Это твой ${passed}-й день с начала.\n\nХочешь отметить его как выполненный?`;
-              confirmText = "Отметить выполнение";
+              if (left !== null && left > 0) {
+                message = t('detail.habitDoNotDoneWithGoalMessage', { passed, left });
+              } else {
+                message = t('detail.habitDoNotDoneNoGoalMessage', { passed });
+              }
+              confirmText = t('detail.confirmDone');
             }
           }
         }
@@ -320,7 +340,7 @@ export const TrackerDetailScreen = () => {
           </View>
         </LinearGradient>
 
-        <Text style={styles.sectionTitle}>{t('detail.activityHistory', 'История активности')}</Text>
+        <Text style={styles.sectionTitle}>{t('detail.activityHistory')}</Text>
         <View style={styles.gridContainer}>
           <TrackerGrid
             type={tracker.type}
@@ -355,7 +375,7 @@ export const TrackerDetailScreen = () => {
               <>
                 <TouchableOpacity style={styles.menuItem} onPress={handleEdit} activeOpacity={0.7}>
                   <Edit2 size={20} color={colors.text.primary} />
-                  <Text style={styles.menuItemText}>Редактировать</Text>
+                      <Text style={styles.menuItemText}>{t('detail.edit')}</Text>
                 </TouchableOpacity>
 
                 <View style={styles.menuDivider} />
@@ -363,8 +383,8 @@ export const TrackerDetailScreen = () => {
                 {tracker.behavior === 'QUIT' && (
                   <>
                     <TouchableOpacity style={styles.menuItem} onPress={handleRelapse} activeOpacity={0.7}>
-                      <Zap size={20} color={colors.gradients.orange[0]} />
-                      <Text style={[styles.menuItemText, { color: colors.gradients.orange[0] }]}>Сорвался</Text>
+                      <RotateCcw size={20} color={colors.gradients.orange[0]} />
+                          <Text style={[styles.menuItemText, { color: colors.gradients.orange[0] }]}>{t('detail.menuRelapse')}</Text>
                     </TouchableOpacity>
                     <View style={styles.menuDivider} />
                   </>
@@ -372,7 +392,7 @@ export const TrackerDetailScreen = () => {
 
                 <TouchableOpacity style={styles.menuItem} onPress={handleFinish} activeOpacity={0.7}>
                   <CheckCircle size={20} color={colors.text.primary} />
-                  <Text style={styles.menuItemText}>Завершить</Text>
+                      <Text style={styles.menuItemText}>{t('detail.finishConfirm')}</Text>
                 </TouchableOpacity>
 
                 <View style={styles.menuDivider} />
@@ -381,7 +401,7 @@ export const TrackerDetailScreen = () => {
 
             <TouchableOpacity style={styles.menuItem} onPress={handleDelete} activeOpacity={0.7}>
               <Trash2 size={20} color={colors.gradients.red[0]} />
-              <Text style={[styles.menuItemText, { color: colors.gradients.red[0] }]}>Удалить</Text>
+              <Text style={[styles.menuItemText, { color: colors.gradients.red[0] }]}>{t('common.delete')}</Text>
             </TouchableOpacity>
 
           </View>

@@ -83,14 +83,14 @@ export const EditTrackerScreen = () => {
   const getModalDifference = () => {
     if (pickerMode === 'start') {
       const diff = differenceInCalendarDays(tempDate, today);
-      if (diff === 0) return t('create.startsToday', 'Начинается сегодня');
-      if (diff === 1) return t('create.startsTomorrow', 'Начинается завтра');
-      if (diff < 0) return t('create.startedDaysAgo', { count: Math.abs(diff), defaultValue: `${Math.abs(diff)} дн. назад` });
-      return t('create.startsInDays', { count: diff, defaultValue: `Через ${diff} дн.` });
+      if (diff === 0) return t('create.startsToday');
+      if (diff === 1) return t('create.startsTomorrow');
+      if (diff < 0) return t('create.startedDaysAgo', { count: Math.abs(diff) });
+      return t('create.startsInDays', { count: diff });
     } else {
       const diff = differenceInCalendarDays(tempDate, startDate);
-      if (diff <= 0) return t('create.endAfterStart', 'Дата конца должна быть после старта');
-      return t('create.daysCount', { count: diff, defaultValue: `${diff} дней` });
+      if (diff <= 0) return t('create.endAfterStart');
+      return t('create.daysCount', { count: diff });
     }
   };
 
@@ -102,7 +102,7 @@ export const EditTrackerScreen = () => {
 
   const handleSave = () => {
     if (!title.trim()) {
-      Alert.alert('Ошибка', 'Введите название');
+      Alert.alert(t('edit.errorTitle'), t('edit.errorEnterName'));
       return;
     }
 
@@ -159,7 +159,7 @@ export const EditTrackerScreen = () => {
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
             <ArrowLeft color={colors.text.primary} size={24} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Редактирование</Text>
+          <Text style={styles.headerTitle}>{t('edit.screenTitle')}</Text>
           <TouchableOpacity onPress={handleSave} style={styles.iconButton}>
             <Check color={colors.gradients.green[0]} size={24} />
           </TouchableOpacity>
@@ -168,21 +168,21 @@ export const EditTrackerScreen = () => {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
           <View style={styles.section}>
-            <Text style={styles.label}>Название</Text>
+            <Text style={styles.label}>{t('edit.nameLabel')}</Text>
             <TextInput
               style={styles.inputCompact}
               value={title}
               onChangeText={setTitle}
-              placeholder="Название трекера"
+              placeholder={t('create.namePlaceholder')}
               placeholderTextColor={colors.text.dim}
             />
 
-            <Text style={[styles.label, { marginTop: 16 }]}>Описание (необязательно)</Text>
+            <Text style={[styles.label, { marginTop: 16 }]}>{t('edit.descriptionLabel')}</Text>
             <TextInput
               style={[styles.inputCompact, { height: undefined, minHeight: 60, textAlignVertical: 'top' }]}
               value={description}
               onChangeText={setDescription}
-              placeholder="Пара слов для мотивации..."
+              placeholder={t('edit.descMotivationPlaceholder')}
               placeholderTextColor={colors.text.dim}
               multiline
             />
@@ -190,18 +190,18 @@ export const EditTrackerScreen = () => {
 
           <View style={styles.section}>
             <View style={styles.rowHeader}>
-              <Text style={styles.label}>{tracker.type === 'HABIT' ? t('create.duration', 'Длительность') : t('create.timeline', 'Сроки')}</Text>
+              <Text style={styles.label}>{tracker.type === 'HABIT' ? t('create.duration') : t('create.timeline')}</Text>
 
               {tracker.type === 'HABIT' && (
                 <View style={styles.switchContainer}>
-                  <Text style={styles.switchText}>{t('create.infinite', 'Бесконечно')}</Text>
+                  <Text style={styles.switchText}>{t('create.infinite')}</Text>
                   <Switch value={isInfinite} onValueChange={setIsInfinite} trackColor={{ false: '#333', true: colors.gradients[color as keyof typeof colors.gradients][0] }} style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }} />
                 </View>
               )}
 
               {tracker.type === 'EVENT' && (
                 <View style={styles.switchContainer}>
-                  <Text style={styles.switchText}>{t('create.countdown', 'Таймер до даты')}</Text>
+                  <Text style={styles.switchText}>{t('create.countdown')}</Text>
                   <Switch value={isCountDown} onValueChange={setIsCountDown} trackColor={{ false: '#333', true: colors.gradients[color as keyof typeof colors.gradients][0] }} style={{ transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] }} />
                 </View>
               )}
@@ -209,7 +209,7 @@ export const EditTrackerScreen = () => {
 
             <View style={styles.row}>
               <TouchableOpacity style={styles.dateBtn} onPress={() => openDatePicker('start')}>
-                <Text style={styles.dateLabelSmall}>{t('create.start', 'Старт')}</Text>
+                <Text style={styles.dateLabelSmall}>{t('create.start')}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   <CalendarIcon color={colors.text.secondary} size={16} />
                   <Text style={styles.dateText}>
@@ -223,10 +223,10 @@ export const EditTrackerScreen = () => {
                 onPress={() => openDatePicker('end')}
                 disabled={inputsDisabled}
               >
-                <Text style={styles.dateLabelSmall}>{t('create.end', 'Финиш')}</Text>
+                <Text style={styles.dateLabelSmall}>{t('create.end')}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                   {inputsDisabled ? (
-                    <Text style={[styles.dateText, { color: colors.text.dim, fontSize: 18 }]}>∞</Text>
+                    <Text style={[styles.dateText, { color: colors.text.dim, fontSize: 18 }]}>{t('common.infinitySymbol')}</Text>
                   ) : (
                     <>
                       <CalendarIcon color={colors.gradients[color as keyof typeof colors.gradients][0]} size={16} />
@@ -241,7 +241,7 @@ export const EditTrackerScreen = () => {
 
             <View style={styles.daysBubble}>
               {inputsDisabled ? (
-                <Text style={[styles.daysInputClean, { fontSize: 18 }]}>∞</Text>
+                <Text style={[styles.daysInputClean, { fontSize: 18 }]}>{t('common.infinitySymbol')}</Text>
               ) : (
                 <TextInput
                   style={styles.daysInputClean}
@@ -251,20 +251,20 @@ export const EditTrackerScreen = () => {
                 />
               )}
               <Text style={styles.daysSuffixClean}>
-                {inputsDisabled ? t('create.durationDays', 'дней') : t('create.totalDays', 'всего дней')}
+                {inputsDisabled ? t('create.durationDays') : t('create.totalDays')}
               </Text>
             </View>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.label}>{t('create.icon', 'Иконка')}</Text>
+            <Text style={styles.label}>{t('create.icon')}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.iconScroll}>
               {ICONS.map(renderIconItem)}
             </ScrollView>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.label}>{t('create.color', 'Цвет')}</Text>
+            <Text style={styles.label}>{t('create.color')}</Text>
             <View style={styles.colorsGrid}>
               {COLOR_OPTIONS.map((c) => (
                 <TouchableOpacity key={c} onPress={() => setColor(c)}>
@@ -287,7 +287,7 @@ export const EditTrackerScreen = () => {
               <View style={styles.modalContent}>
                 <View style={styles.modalHeaderRow}>
                   <Text style={styles.modalTitle}>
-                    {pickerMode === 'start' ? t('create.startDate', 'Дата старта') : t('create.targetDate', 'Конечная дата')}
+                    {pickerMode === 'start' ? t('create.startDate') : t('create.targetDate')}
                   </Text>
                   <View style={styles.modalBadge}>
                     <Text style={styles.modalBadgeText}>{getModalDifference()}</Text>
@@ -304,10 +304,10 @@ export const EditTrackerScreen = () => {
                 />
                 <View style={styles.modalButtons}>
                   <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.btnCancel}>
-                    <Text style={styles.btnText}>{t('common.cancel', 'Отмена')}</Text>
+                    <Text style={styles.btnText}>{t('common.cancel')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => handleDateConfirm(tempDate)} style={styles.btnConfirm}>
-                    <Text style={styles.btnTextBold}>{t('common.confirm', 'ОК')}</Text>
+                    <Text style={styles.btnTextBold}>{t('common.confirm')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>

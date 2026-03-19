@@ -14,12 +14,12 @@ export const SettingsScreen = () => {
 
   const handleLanguageChange = () => {
     Alert.alert(
-      t('settings.language', 'Язык'),
-      t('settings.selectLanguage', 'Выберите язык приложения'),
+      t('settings.language'),
+      t('settings.selectLanguage'),
       [
-        { text: 'Русский', onPress: () => i18n.changeLanguage('ru') },
-        { text: 'English', onPress: () => i18n.changeLanguage('en') },
-        { text: t('common.cancel', 'Отмена'), style: 'cancel' }
+        { text: t('settings.languageRussian'), onPress: () => i18n.changeLanguage('ru') },
+        { text: t('settings.languageEnglish'), onPress: () => i18n.changeLanguage('en') },
+        { text: t('common.cancel'), style: 'cancel' }
       ]
     );
   };
@@ -47,7 +47,7 @@ export const SettingsScreen = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>{t('settings.title', 'Профиль')}</Text>
+        <Text style={styles.headerTitle}>{t('settings.title')}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -61,30 +61,30 @@ export const SettingsScreen = () => {
             <User size={32} color={colors.gradients.purple[0]} />
           </LinearGradient>
           <View>
-            <Text style={styles.profileName}>{t('settings.guest', 'Гость')}</Text>
-            <Text style={styles.profileSub}>{t('settings.localMode', 'Локальный режим')}</Text>
+            <Text style={styles.profileName}>{t('settings.guest')}</Text>
+            <Text style={styles.profileSub}>{t('settings.localMode')}</Text>
           </View>
         </View>
 
         {/* ОСНОВНЫЕ НАСТРОЙКИ */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.appearance', 'Внешний вид')}</Text>
+          <Text style={styles.sectionTitle}>{t('settings.appearance')}</Text>
           <View style={styles.card}>
             <SettingRow
               icon={Globe}
-              label={t('settings.language', 'Язык')}
-              value={i18n.language === 'ru' ? 'Русский' : 'English'}
+              label={t('settings.language')}
+              value={i18n.language === 'ru' ? t('settings.languageRussian') : t('settings.languageEnglish')}
               onPress={handleLanguageChange}
             />
             <View style={styles.divider} />
             <SettingRow
               icon={Moon}
-              label={t('settings.theme', 'Темная тема')}
+              label={t('settings.theme')}
               hasArrow={false}
               rightElement={
                 <Switch
                   value={true} // Пока жестко включена
-                  onValueChange={() => Alert.alert('Тема', 'Светлая тема появится в будущих обновлениях!')}
+                  onValueChange={() => Alert.alert(t('settings.themeAlertTitle'), t('settings.themeAlertMessage'))}
                   trackColor={{ false: '#333', true: colors.gradients.today[0] }}
                 />
               }
@@ -97,7 +97,7 @@ export const SettingsScreen = () => {
           <View style={styles.card}>
             <SettingRow
               icon={Info}
-              label={t('settings.about', 'О приложении')}
+              label={t('settings.about')}
               value="v1.0.0"
               hasArrow={false}
             />

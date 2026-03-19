@@ -3,7 +3,9 @@
     "cancel": "Отмена",
     "confirm": "Готово",
     "save": "Сохранить",
-    "delete": "Удалить"
+    "delete": "Удалить",
+    "infinitySymbol": "∞",
+    "dash": "—"
   },
   "header": {
     "title": "MakeDays",
@@ -26,11 +28,11 @@
     "duration": "Длительность",
     "timeline": "Хронология",
     "infinite": "Бесконечно",
-    "countdown": "Таймер",
+    "countdown": "Обратный отсчет",
     "start": "Старт",
     "end": "Конец",
     "totalDays": "всего дней",
-    "durationDays": "длительность",
+    "durationDays": "дней",
     "icon": "Иконка",
     "color": "Цвет",
     "btnStartHabit": "Начать привычку",
@@ -38,19 +40,41 @@
     "btnTrackEvent": "Отслеживать событие",
     "startsToday": "Начинается сегодня",
     "startsTomorrow": "Начинается завтра",
-    "startedDaysAgo": "Начато {{count}} дн. назад",
-    "startsInDays": "Старт через {{count}} дн.",
-    "endAfterStart": "Конец > Старта",
+    "startedDaysAgo": "{{count}} дн. назад",
+    "startsInDays": "Через {{count}} дн.",
+    "endAfterStart": "Дата конца должна быть после старта",
     "daysCount": "{{count}} дн.",
     "startDate": "Дата начала",
     "targetDate": "Конечная дата"
   },
+  "edit": {
+    "screenTitle": "Редактирование",
+    "nameLabel": "Название",
+    "descriptionLabel": "Описание (необязательно)",
+    "descMotivationPlaceholder": "Пара слов для мотивации...",
+    "errorTitle": "Ошибка",
+    "errorEnterName": "Введите название"
+  },
+  "settings": {
+    "title": "Профиль",
+    "guest": "Гость",
+    "localMode": "Локальный режим",
+    "appearance": "Внешний вид",
+    "language": "Язык",
+    "selectLanguage": "Выберите язык приложения",
+    "theme": "Темная тема",
+    "about": "О приложении",
+    "languageRussian": "Русский",
+    "languageEnglish": "English",
+    "themeAlertTitle": "Тема",
+    "themeAlertMessage": "Светлая тема появится в будущих обновлениях!"
+  },
   "card": {
-    "habitBuild": "HABIT • BUILD",
-    "habitQuit": "HABIT • QUIT",
-    "eventLeft": "EVENT • LEFT",
-    "eventPassed": "EVENT • PASSED",
-    "daysWithoutIt": "Дней без срывов",
+    "habitBuild": "ПРИВЫЧКА • ВНЕДРИТЬ",
+    "habitQuit": "ПРИВЫЧКА • БРОСИТЬ",
+    "eventLeft": "СОБЫТИЕ • ОСТАЛОСЬ",
+    "eventPassed": "СОБЫТИЕ • ПРОШЛО",
+    "daysWithoutIt": "Дней подряд",
     "dailyCheckIn": "Ежедневная отметка",
     "goal": "Цель: ",
     "target": "Цель: ",
@@ -66,23 +90,66 @@
   "detail": {
     "edit": "Изменить",
     "editMessage": "Редактировать трекер",
-    "delete": "Удалить",
-    "deleteConfirm": "Вы уверены?",
+    "delete": "Удалить трекер? 🗑️",
+    "deleteConfirm": "Вы уверены, что хотите безвозвратно удалить этот трекер и всю его историю?",
     "successRate": "Прогресс",
     "checkInsOutOf": "{{completed}} отметок из {{total}} дней",
     "totalDays": "Всего дней",
-    "currentStreak": "Текущая серия",
+    "currentStreak": "Дней подряд",
     "activityHistory": "История активности",
     "statusPending": "Ожидание",
     "statusActive": "Активно",
     "statusCompleted": "Завершено",
     "daysUntilStart": "Дней до старта",
     "getReady": "Приготовьтесь!",
-    "bestStreak": "Рекорд (дней)",
-    "daysClean": "Дней без срывов"
+    "bestStreak": "Рекорд",
+    "daysClean": "Текущая серия",
+
+    "daysLeft": "Осталось дней",
+    "daysPassed": "Прошло дней",
+    "targetDays": "Всего дней",
+    "targetDate": "Конец",
+    "eventDate": "Дата",
+    "totalCheckIns": "Отметок",
+
+    "menuRelapse": "Прервать серию",
+
+    "finishTitle": "Завершить трекер? 🏁",
+    "finishMessage": "Вы больше не сможете отмечать новые дни, но вся история сохранится в архиве.",
+    "finishConfirm": "Завершить",
+
+    "relapseTitle": "Прервать серию? 🔄",
+    "relapseMessageWithTarget": "Текущая серия будет прервана, а цель отодвинется на {{targetDays}} дн. вперед.\n\nЕсли вы решили прекратить отслеживание окончательно, выберите «{{finish}}» в меню.",
+    "relapseMessageNoTarget": "Текущая серия будет прервана.\n\nЕсли вы решили прекратить отслеживание окончательно, выберите «{{finish}}» в меню.",
+    "relapseConfirm": "Прервать",
+
+    "completedTitle": "Трекер завершен 🏁",
+    "completedMessage": "Вы больше не можете вносить изменения в историю этого трекера.",
+    "completedConfirm": "Понятно",
+
+    "confirmRemove": "Убрать",
+    "confirmDone": "Выполнено",
+
+    "eventNotStartedMessage": "Событие еще не началось.",
+    "eventCountdownMessage": "Прошло с начала: {{passed}} дн.\nОсталось до события: {{left}} дн.",
+    "eventTargetDateMessage": "Целевая дата события.",
+    "eventFinishedMessage": "Событие завершено.",
+    "eventExpectedDayMessage": "Ожидаемый день: {{passed}} с начала события.",
+    "eventDayMessage": "День {{passed}} с начала события.",
+
+    "habitNotStartedMessage": "Трекер еще не стартовал.\nОсталось до начала: {{daysUntil}} дн.",
+    "habitFutureDayNoGoalMessage": "День {{passed}}.",
+    "habitFutureDayWithGoalRemainingMessage": "День {{passed}}.\nДо завершения цели останется {{left}} дн.",
+    "habitQuitRelapseDoneMessage": "День {{passed}}.\\nСерия была прервана.",
+    "habitQuitRelapseNotDoneMessage": "День {{passed}}.\\nСерия сохранена.",
+    "habitDoDoneWithGoalMessage": "День {{passed}}.\nОтметка о выполнении поставлена.\nДо конца цели: {{left}} дн.",
+    "habitDoDoneNoGoalMessage": "День {{passed}}.\nОтметка о выполнении поставлена.",
+    "habitDoNotDoneWithGoalMessage": "День {{passed}}.\nОтметка о выполнении отсутствует.\nДо конца цели: {{left}} дн.\n\nЕсли вы выполнили действие в этот день, вы можете отметить его сейчас.",
+    "habitDoNotDoneNoGoalMessage": "День {{passed}}.\nОтметка о выполнении отсутствует.\n\nЕсли вы выполнили действие в этот день, вы можете отметить его сейчас."
   },
   "calendar": {
     "dateAlertTitle": "Дата",
     "weekdays": ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
   }
 }
+

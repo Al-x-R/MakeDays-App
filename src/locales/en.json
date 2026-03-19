@@ -3,7 +3,9 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "save": "Save",
-    "delete": "Delete"
+    "delete": "Delete",
+    "infinitySymbol": "∞",
+    "dash": "—"
   },
   "header": {
     "title": "MakeDays",
@@ -30,7 +32,7 @@
     "start": "Start",
     "end": "End",
     "totalDays": "total days",
-    "durationDays": "duration",
+    "durationDays": "days",
     "icon": "Icon",
     "color": "Color",
     "btnStartHabit": "Start Habit",
@@ -40,17 +42,39 @@
     "startsTomorrow": "Starts Tomorrow",
     "startedDaysAgo": "Started {{count}} days ago",
     "startsInDays": "Starts in {{count}} days",
-    "endAfterStart": "End > Start",
+    "endAfterStart": "End date must be after start date",
     "daysCount": "{{count}} days",
     "startDate": "Start Date",
     "targetDate": "Target Date"
+  },
+  "edit": {
+    "screenTitle": "Editing",
+    "nameLabel": "Name",
+    "descriptionLabel": "Description (optional)",
+    "descMotivationPlaceholder": "A couple words for motivation...",
+    "errorTitle": "Error",
+    "errorEnterName": "Please enter a name"
+  },
+  "settings": {
+    "title": "Profile",
+    "guest": "Guest",
+    "localMode": "Local mode",
+    "appearance": "Appearance",
+    "language": "Language",
+    "selectLanguage": "Select app language",
+    "theme": "Dark theme",
+    "about": "About the app",
+    "languageRussian": "Russian",
+    "languageEnglish": "English",
+    "themeAlertTitle": "Theme",
+    "themeAlertMessage": "Light theme will be available in future updates."
   },
   "card": {
     "habitBuild": "HABIT • BUILD",
     "habitQuit": "HABIT • QUIT",
     "eventLeft": "EVENT • LEFT",
     "eventPassed": "EVENT • PASSED",
-    "daysWithoutIt": "Days without it",
+    "daysWithoutIt": "Days in a row",
     "dailyCheckIn": "Daily check-in",
     "goal": "Goal: ",
     "target": "Target: ",
@@ -66,23 +90,64 @@
   "detail": {
     "edit": "Edit",
     "editMessage": "Edit tracker",
-    "delete": "Delete",
-    "deleteConfirm": "Are you sure?",
-    "successRate": "Success Rate",
+    "delete": "Delete tracker? 🗑️",
+    "deleteConfirm": "Are you sure you want to permanently delete this tracker and all its history?",
+    "successRate": "Progress",
     "checkInsOutOf": "{{completed}} check-ins out of {{total}} days",
     "totalDays": "Total Days",
-    "currentStreak": "Current Streak",
+    "currentStreak": "Days in a row",
     "activityHistory": "Activity History",
     "statusPending": "Pending",
     "statusActive": "Active",
     "statusCompleted": "Completed",
     "daysUntilStart": "Days until start",
     "getReady": "Get ready!",
-    "bestStreak": "Best Streak",
-    "daysClean": "Days clean"
+    "bestStreak": "Best streak",
+    "daysClean": "Current streak",
+    "daysLeft": "Days left",
+    "daysPassed": "Days passed",
+    "targetDays": "Total days",
+    "targetDate": "End",
+    "eventDate": "Date",
+    "totalCheckIns": "Check-ins",
+
+    "menuRelapse": "Reset streak",
+    "finishTitle": "Finish tracker? 🏁",
+    "finishMessage": "You will no longer be able to mark new days, but all history will be saved in the archive.",
+    "finishConfirm": "Finish",
+
+    "relapseTitle": "Break the streak? 🔄",
+    "relapseMessageWithTarget": "The current streak will be interrupted, and the goal will move forward by {{targetDays}} days.\n\nIf you decided to stop tracking for good, choose «{{finish}}» in the menu.",
+    "relapseMessageNoTarget": "The current streak will be interrupted.\n\nIf you decided to stop tracking for good, choose «{{finish}}» in the menu.",
+    "relapseConfirm": "Break",
+
+    "completedTitle": "Tracker finished 🏁",
+    "completedMessage": "You can no longer make changes to this tracker history.",
+    "completedConfirm": "Got it",
+
+    "confirmRemove": "Remove",
+    "confirmDone": "Done",
+
+    "eventNotStartedMessage": "The event hasn't started yet.",
+    "eventCountdownMessage": "Passed since the start: {{passed}} days\nTime left until the event: {{left}} days",
+    "eventTargetDateMessage": "Event target date.",
+    "eventFinishedMessage": "Event completed.",
+    "eventExpectedDayMessage": "Expected day: {{passed}} from the event start.",
+    "eventDayMessage": "Day {{passed}} from the event start.",
+
+    "habitNotStartedMessage": "The tracker hasn't started yet.\nTime left until start: {{daysUntil}} days",
+    "habitFutureDayNoGoalMessage": "Day {{passed}}.",
+    "habitFutureDayWithGoalRemainingMessage": "Day {{passed}}.\nBefore the goal ends, {{left}} days remain.",
+    "habitQuitRelapseDoneMessage": "Day {{passed}}.\\nStreak was broken.",
+    "habitQuitRelapseNotDoneMessage": "Day {{passed}}.\\nStreak maintained.",
+    "habitDoDoneWithGoalMessage": "Day {{passed}}.\nCompletion mark set.\nUntil the end of the goal: {{left}} days",
+    "habitDoDoneNoGoalMessage": "Day {{passed}}.\nCompletion mark set.",
+    "habitDoNotDoneWithGoalMessage": "Day {{passed}}.\nNo completion mark.\nUntil the end of the goal: {{left}} days\n\nIf you did the action on this day, you can mark it now.",
+    "habitDoNotDoneNoGoalMessage": "Day {{passed}}.\nNo completion mark.\n\nIf you did the action on this day, you can mark it now."
   },
   "calendar": {
     "dateAlertTitle": "Date",
     "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
   }
 }
+

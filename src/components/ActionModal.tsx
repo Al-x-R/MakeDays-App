@@ -39,7 +39,7 @@ export const ActionModal = ({
           <View style={styles.buttonRow}>
             {onConfirm && (
               <TouchableOpacity onPress={onClose} activeOpacity={0.8} style={styles.cancelBtn}>
-                <Text style={styles.cancelBtnText}>{cancelText || t('common.cancel', 'Отмена')}</Text>
+                <Text style={styles.cancelBtnText}>{cancelText || t('common.cancel')}</Text>
               </TouchableOpacity>
             )}
 
@@ -49,7 +49,7 @@ export const ActionModal = ({
               style={{ flex: 1 }}
             >
               <LinearGradient colors={colorGradient} start={{x: 0, y: 0}} end={{x: 1, y: 0}} style={styles.confirmBtn}>
-                <Text style={styles.confirmBtnText}>{confirmText || t('common.confirm', 'ОК')}</Text>
+                <Text style={styles.confirmBtnText}>{confirmText || t('common.confirm')}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
