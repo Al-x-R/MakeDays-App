@@ -150,6 +150,16 @@
   "calendar": {
     "dateAlertTitle": "Дата",
     "weekdays": ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
+  },
+  "day": {
+    "dayOfYear": "День года",
+    "daysLeft": "Осталось",
+    "yearProgress": "Прогресс",
+    "trackers": "Трекеры в этот день",
+    "noTrackers": "В этот день не было активных трекеров.",
+    "future": "Будущее",
+    "eventPassed": "Прошло",
+    "eventLeft": "Осталось"
   }
 }
 

@@ -10,6 +10,7 @@ import { CalendarScreen } from '../screens/CalendarScreen';
 import { CreateTrackerScreen } from '../screens/CreateTrackerScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { EditTrackerScreen } from '../screens/EditTrackerScreen';
+import { DayDetailScreen } from '../screens/DayDetailScreen'; // <-- 1. ИМПОРТИРУЕМ НОВЫЙ ЭКРАН
 
 import { ListCheck, PlusSquare, CalendarDays, User } from 'lucide-react-native';
 import colors from '../constants/colors';
@@ -17,6 +18,7 @@ import { View } from 'react-native';
 
 const RootStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
+const CalendarStack = createNativeStackNavigator(); // <-- 2. СОЗДАЕМ СТЕК ДЛЯ КАЛЕНДАРЯ
 
 const HomeStackNavigator = () => {
   return (
@@ -24,6 +26,18 @@ const HomeStackNavigator = () => {
       <HomeStack.Screen name="TrackerList" component={ListScreen} />
       <HomeStack.Screen name="TrackerDetail" component={TrackerDetailScreen} />
     </HomeStack.Navigator>
+  );
+};
+
+// 3. ДОБАВЛЯЕМ НАВИГАТОР ДЛЯ ВКЛАДКИ КАЛЕНДАРЯ
+const CalendarStackNavigator = () => {
+  return (
+    <CalendarStack.Navigator screenOptions={{ headerShown: false }}>
+      <CalendarStack.Screen name="CalendarMain" component={CalendarScreen} />
+      <CalendarStack.Screen name="DayDetail" component={DayDetailScreen} />
+      {/* Добавляем TrackerDetail и сюда, чтобы карточки открывались плавно поверх календаря */}
+      <CalendarStack.Screen name="TrackerDetail" component={TrackerDetailScreen} />
+    </CalendarStack.Navigator>
   );
 };
 
@@ -57,6 +71,7 @@ export const TabNavigator = () => {
         }}
       />
 
+      {/* ТАБ 2: ПЛЮС */}
       <Tab.Screen
         name="AddButton"
         component={AddPlaceholder}
@@ -77,14 +92,16 @@ export const TabNavigator = () => {
         })}
       />
 
+      {/* ТАБ 3: КАЛЕНДАРЬ */}
       <Tab.Screen
         name="Calendar"
-        component={CalendarScreen}
+        component={CalendarStackNavigator} // <-- 4. ЗАМЕНИЛИ КОМПОНЕНТ НА СТЕК
         options={{
           tabBarIcon: ({ color, size }) => <CalendarDays color={color} size={size} />,
         }}
       />
 
+      {/* ТАБ 4: ПРОФИЛЬ */}
       <Tab.Screen
         name="Profile"
         component={SettingsScreen}

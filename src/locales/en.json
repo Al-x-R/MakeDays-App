@@ -148,6 +148,16 @@
   "calendar": {
     "dateAlertTitle": "Date",
     "weekdays": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  },
+  "day": {
+    "dayOfYear": "Day of year",
+    "daysLeft": "Days left",
+    "yearProgress": "Progress",
+    "trackers": "Trackers on this day",
+    "noTrackers": "No active trackers on this day.",
+    "future": "Future",
+    "eventPassed": "Passed",
+    "eventLeft": "Left"
   }
 }
 

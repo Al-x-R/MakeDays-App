@@ -1,17 +1,16 @@
+// src/components/YearGrid.tsx
 import React from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   useWindowDimensions,
   ScrollView
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
-import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { useNavigation } from '@react-navigation/native';
 import { useGridCalculation } from '../hooks/useGridCalculation';
 import { DayData } from '../types';
 import colors from '../constants/colors';
@@ -24,6 +23,7 @@ const MONTH_LABEL_WIDTH = 24;
 export const YearGrid = () => {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
+  const navigation = useNavigation<any>();
   const months = useGridCalculation();
 
   const availableWidth = width - (PADDING * 2) - MONTH_LABEL_WIDTH - GAP;
@@ -32,7 +32,9 @@ export const YearGrid = () => {
 
   const handlePress = (day: DayData) => {
     if (!day.date || day.status === 'EMPTY') return;
-    Alert.alert(t('calendar.dateAlertTitle'), format(day.date, 'd MMMM yyyy', { locale: ru }));
+
+    // ДЕЛАЕМ ПЕРЕХОД, ПЕРЕДАЕМ ДАТУ
+    navigation.navigate('DayDetail', { date: day.date.toISOString() });
   };
 
   const getCellProps = (status: DayData['status']) => {
@@ -147,67 +149,16 @@ export const YearGrid = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: PADDING,
-    paddingBottom: 5,
-    paddingTop: 10,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    paddingHorizontal: PADDING,
-    marginBottom: GAP,
-    marginTop: 10,
-    backgroundColor: colors.background,
-    zIndex: 10,
-  },
-  daysHeader: {
-    flexDirection: 'row',
-    gap: GAP,
-  },
-  weekDayText: {
-    color: colors.text.secondary,
-    textAlign: 'center',
-    fontSize: 10,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  monthRow: {
-    flexDirection: 'row',
-    marginBottom: GAP * 2,
-    alignItems: 'stretch',
-  },
-  monthLabelContainer: {
-    width: MONTH_LABEL_WIDTH,
-    marginRight: GAP,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  monthTitle: {
-    color: colors.text.secondary,
-    fontSize: 10,
-    fontWeight: '800', // Жирнее
-    textAlign: 'center',
-    lineHeight: 14,
-    opacity: 0.8,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: GAP,
-  },
-  cell: {
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  cellText: {
-    fontWeight: '700',
-  },
+  container: { flex: 1, backgroundColor: colors.background },
+  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: PADDING, paddingBottom: 5, paddingTop: 10 },
+  headerRow: { flexDirection: 'row', paddingHorizontal: PADDING, marginBottom: GAP, marginTop: 10, backgroundColor: colors.background, zIndex: 10 },
+  daysHeader: { flexDirection: 'row', gap: GAP },
+  weekDayText: { color: colors.text.secondary, textAlign: 'center', fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
+  monthRow: { flexDirection: 'row', marginBottom: GAP * 2, alignItems: 'stretch' },
+  monthLabelContainer: { width: MONTH_LABEL_WIDTH, marginRight: GAP, justifyContent: 'center', alignItems: 'center' },
+  monthTitle: { color: colors.text.secondary, fontSize: 10, fontWeight: '800', textAlign: 'center', lineHeight: 14, opacity: 0.8 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
+  cell: { borderRadius: 6, justifyContent: 'center', alignItems: 'center' },
+  cellText: { fontWeight: '700' },
 });
