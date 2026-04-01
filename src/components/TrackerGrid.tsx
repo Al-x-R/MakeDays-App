@@ -42,10 +42,13 @@ export const TrackerGrid = ({
 
   const goalEndDate = useMemo(() => {
     if (type === 'HABIT' && goalEnabled && targetDays && targetDays > 0) {
+      if (endDate) {
+        return startOfDay(new Date(endDate));
+      }
       return addDays(actualStart, targetDays - 1);
     }
     return null;
-  }, [type, goalEnabled, targetDays, actualStart]);
+  }, [type, goalEnabled, targetDays, actualStart, endDate]);
 
   const days = useMemo(() => {
     let rangeStart = min([today, actualStart]);

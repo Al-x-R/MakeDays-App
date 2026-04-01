@@ -25,7 +25,7 @@ export const TrackerDetailScreen = () => {
   const deleteTracker = useTrackerStore((state) => state.deleteTracker);
   const toggleDay = useTrackerStore((state) => state.toggleDay);
   const finishTracker = useTrackerStore((state) => state.finishTracker);
-  const recordRelapse = useTrackerStore((state) => state.recordRelapse); // <-- ДОБАВИЛИ ЭКШН
+  const recordRelapse = useTrackerStore((state) => state.recordRelapse);
 
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [modalConfig, setModalConfig] = useState<{
@@ -45,7 +45,7 @@ export const TrackerDetailScreen = () => {
   const activeDates = Object.keys(history).filter(k => history[k]);
 
   const stats = useMemo(() => {
-    if (!tracker) return { status: 'ACTIVE' as const, statusText: '', mainValue: 0, mainLabel: '', subStats: [] };
+    if (!tracker) return { status: 'ACTIVE' as const, statusText: '', mainValue: 0, mainLabel: '', subStats: [], bestCleanStreak: 0, hasRelapses: false };
 
     const today = startOfDay(new Date());
     const daysToStart = differenceInCalendarDays(start, today);
@@ -60,10 +60,16 @@ export const TrackerDetailScreen = () => {
         ? t('detail.statusCompleted')
         : t('detail.statusActive');
 
+    // ФИКС ВРЕМЕНИ: Если трекер завершен, мы останавливаем счетчик на дате окончания
+    const activeDate = (status === 'COMPLETED' && end) ? end : today;
+    const daysSinceStart = eachDayOfInterval({ start, end: activeDate });
+
     let mainValue: string | number = 0;
     let mainLabel = '';
     const subStats: { label: string; value: string | number }[] = [];
-    const daysSinceStart = eachDayOfInterval({ start, end: today });
+
+    let bestCleanStreak = 0;
+    let hasRelapses = false;
 
     if (status === 'PENDING') {
       mainValue = daysToStart;
@@ -74,8 +80,9 @@ export const TrackerDetailScreen = () => {
     else if (tracker.type === 'EVENT') {
       const targetDate = end || today;
       const totalDays = Math.max(1, Math.abs(differenceInCalendarDays(targetDate, start)));
-      const passed = differenceInCalendarDays(today, start);
-      const left = differenceInCalendarDays(targetDate, today);
+      // Используем activeDate вместо today, чтобы заморозить прогресс
+      const passed = differenceInCalendarDays(activeDate, start);
+      const left = differenceInCalendarDays(targetDate, activeDate);
       const percentage = Math.max(0, Math.min(100, Math.round((passed / totalDays) * 100)));
 
       mainValue = tracker.isCountDown ? Math.max(0, left) : Math.max(0, passed);
@@ -87,46 +94,62 @@ export const TrackerDetailScreen = () => {
     }
     else if (tracker.behavior === 'QUIT') {
       let currentCleanStreak = 0;
-      let bestCleanStreak = 0;
+
       daysSinceStart.forEach(d => {
         if (!history[d.toISOString()]) {
           currentCleanStreak++;
           bestCleanStreak = Math.max(bestCleanStreak, currentCleanStreak);
-        } else currentCleanStreak = 0;
+        } else {
+          currentCleanStreak = 0;
+          hasRelapses = true;
+        }
       });
 
+      const totalPassed = Math.max(1, daysSinceStart.length);
+      const targetValue = tracker.goal?.targetValue;
+      const isGoalEnabled = tracker.goal?.enabled;
+
       mainValue = currentCleanStreak;
-      mainLabel = t('detail.daysClean');
-      subStats.push({ label: t('detail.bestStreak'), value: bestCleanStreak });
-      subStats.push({ label: t('detail.totalDays'), value: Math.max(1, daysSinceStart.length) });
-      subStats.push({
-        label: t('card.goal').replace(':', '').trim(),
-        value: tracker.goal?.enabled && tracker.goal.targetValue ? tracker.goal.targetValue : t('common.infinitySymbol')
-      });
+      mainLabel = t('detail.daysClean', 'Текущая серия');
+
+      subStats.push({ label: t('card.goal', 'Цель').replace(':', '').trim(), value: isGoalEnabled && targetValue ? targetValue : t('common.infinitySymbol', '∞') });
+      subStats.push({ label: t('detail.daysPassed', 'Прошло'), value: totalPassed });
+
+      if (isGoalEnabled && targetValue) {
+        const left = Math.max(0, targetValue - currentCleanStreak);
+        subStats.push({ label: t('detail.daysLeft', 'Осталось'), value: left });
+      } else {
+        subStats.push({ label: t('detail.daysLeft', 'Осталось'), value: t('common.infinitySymbol', '∞') });
+      }
     }
     else { // HABIT: DO
-      let currentStreak = 0;
-      let bestStreak = 0;
       let completedCount = 0;
+
       daysSinceStart.forEach(d => {
         if (history[d.toISOString()]) {
           completedCount++;
-          currentStreak++;
-          bestStreak = Math.max(bestStreak, currentStreak);
-        } else currentStreak = 0;
+        }
       });
 
-      const totalDays = Math.max(1, daysSinceStart.length);
-      const percentage = Math.round((completedCount / totalDays) * 100);
+      const totalPassed = Math.max(1, daysSinceStart.length);
+      const targetValue = tracker.goal?.targetValue;
+      const isGoalEnabled = tracker.goal?.enabled;
 
-      mainValue = currentStreak;
-      mainLabel = t('detail.currentStreak');
-      subStats.push({ label: t('detail.bestStreak'), value: bestStreak });
-      subStats.push({ label: t('detail.successRate'), value: `${percentage}%` });
-      subStats.push({ label: t('detail.totalCheckIns'), value: completedCount });
+      mainValue = completedCount;
+      mainLabel = t('detail.totalCheckIns', 'Отметок');
+
+      subStats.push({ label: t('card.goal', 'Цель').replace(':', '').trim(), value: isGoalEnabled && targetValue ? targetValue : t('common.infinitySymbol', '∞') });
+      subStats.push({ label: t('detail.daysPassed', 'Прошло'), value: totalPassed });
+
+      if (isGoalEnabled && targetValue) {
+        const left = Math.max(0, targetValue - completedCount);
+        subStats.push({ label: t('detail.daysLeft', 'Осталось'), value: left });
+      } else {
+        subStats.push({ label: t('detail.daysLeft', 'Осталось'), value: t('common.infinitySymbol', '∞') });
+      }
     }
 
-    return { status, statusText, mainValue, mainLabel, subStats };
+    return { status, statusText, mainValue, mainLabel, subStats, bestCleanStreak, hasRelapses };
   }, [tracker, t, start, end, history]);
 
   useEffect(() => {
@@ -188,6 +211,7 @@ export const TrackerDetailScreen = () => {
         const todayIso = startOfDay(new Date()).toISOString();
         let newEndDate;
         if (targetDays) {
+          // Высчитываем новую дату окончания и сдвигаем её вперед
           newEndDate = addDays(startOfDay(new Date()), targetDays).toISOString();
         }
         recordRelapse(tracker.id, todayIso, newEndDate);
@@ -321,6 +345,17 @@ export const TrackerDetailScreen = () => {
                 <Text style={[styles.statusText, { color: statusColor }]}>{stats.statusText}</Text>
               </View>
             </View>
+
+            {/* БЕЙДЖ РЕКОРДА (Отображается ВСЕГДА для плохих привычек) */}
+            {stats.status !== 'PENDING' && tracker.behavior === 'QUIT' && (
+              <View style={styles.recordBadge}>
+                <Text style={styles.recordBadgeText}>
+                  {t('detail.bestStreak', 'Рекорд')}
+                </Text>
+                <Text style={styles.recordBadgeValue}>{stats.bestCleanStreak}</Text>
+              </View>
+            )}
+
           </View>
 
           {tracker.description ? <Text style={styles.descriptionText} numberOfLines={2}>{tracker.description}</Text> : null}
@@ -375,7 +410,7 @@ export const TrackerDetailScreen = () => {
               <>
                 <TouchableOpacity style={styles.menuItem} onPress={handleEdit} activeOpacity={0.7}>
                   <Edit2 size={20} color={colors.text.primary} />
-                      <Text style={styles.menuItemText}>{t('detail.edit')}</Text>
+                  <Text style={styles.menuItemText}>{t('detail.edit')}</Text>
                 </TouchableOpacity>
 
                 <View style={styles.menuDivider} />
@@ -384,7 +419,7 @@ export const TrackerDetailScreen = () => {
                   <>
                     <TouchableOpacity style={styles.menuItem} onPress={handleRelapse} activeOpacity={0.7}>
                       <RotateCcw size={20} color={colors.gradients.orange[0]} />
-                          <Text style={[styles.menuItemText, { color: colors.gradients.orange[0] }]}>{t('detail.menuRelapse')}</Text>
+                      <Text style={[styles.menuItemText, { color: colors.gradients.orange[0] }]}>{t('detail.menuRelapse')}</Text>
                     </TouchableOpacity>
                     <View style={styles.menuDivider} />
                   </>
@@ -392,7 +427,7 @@ export const TrackerDetailScreen = () => {
 
                 <TouchableOpacity style={styles.menuItem} onPress={handleFinish} activeOpacity={0.7}>
                   <CheckCircle size={20} color={colors.text.primary} />
-                      <Text style={styles.menuItemText}>{t('detail.finishConfirm')}</Text>
+                  <Text style={styles.menuItemText}>{t('detail.finishConfirm')}</Text>
                 </TouchableOpacity>
 
                 <View style={styles.menuDivider} />
@@ -420,13 +455,26 @@ const styles = StyleSheet.create({
   scrollContent: { paddingBottom: 40, paddingTop: 8 },
 
   dashboardCard: { marginHorizontal: 16, padding: 20, borderRadius: 24, borderWidth: 1, marginBottom: 24 },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 12 },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   iconWrapper: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   titleContainer: { flex: 1 },
   trackerTitle: { color: colors.text.primary, fontSize: 22, fontWeight: '800', marginBottom: 4 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
   statusText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+
+  recordBadge: {
+    marginLeft: 'auto',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    alignItems: 'center',
+    minWidth: 50,
+  },
+  recordBadgeText: { color: colors.text.dim, fontSize: 9, fontWeight: '600', textTransform: 'uppercase', marginBottom: 1, letterSpacing: 0.3 },
+  recordBadgeValue: { color: colors.text.primary, fontSize: 16, fontWeight: '800' },
+
   descriptionText: { color: colors.text.secondary, fontSize: 14, lineHeight: 20, marginBottom: 16, opacity: 0.8 },
 
   mainStatArea: { alignItems: 'center', paddingVertical: 12, marginBottom: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
@@ -442,20 +490,7 @@ const styles = StyleSheet.create({
   gridContainer: { paddingHorizontal: 16 },
 
   menuOverlay: { flex: 1, backgroundColor: 'transparent' },
-  dropdownMenu: {
-    position: 'absolute',
-    top: 60,
-    right: 16,
-    backgroundColor: '#1C1C22',
-    borderRadius: 16,
-    borderWidth: 1,
-    width: 200,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
-    elevation: 10,
-  },
+  dropdownMenu: { position: 'absolute', top: 60, right: 16, backgroundColor: '#1C1C22', borderRadius: 16, borderWidth: 1, width: 200, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 15, elevation: 10 },
   menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 },
   menuItemText: { color: colors.text.primary, fontSize: 16, fontWeight: '600' },
   menuDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginHorizontal: 16 }
