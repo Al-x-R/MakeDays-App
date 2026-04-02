@@ -1,27 +1,26 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
+// src/screens/SettingsScreen.tsx
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Modal, Pressable } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Globe, Moon, Sun, Trash2, ChevronRight, Info, User } from 'lucide-react-native';
+import { Globe, Moon, Info, User, X, ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 
 import colors from '../constants/colors';
 
 export const SettingsScreen = () => {
   const { t, i18n } = useTranslation();
+  const navigation = useNavigation<any>();
 
-  // --- ОБРАБОТЧИКИ ---
+  const [modalConfig, setModalConfig] = useState<{
+    visible: boolean;
+    type: 'language' | 'theme' | null;
+  }>({ visible: false, type: null });
 
-  const handleLanguageChange = () => {
-    Alert.alert(
-      t('settings.language'),
-      t('settings.selectLanguage'),
-      [
-        { text: t('settings.languageRussian'), onPress: () => i18n.changeLanguage('ru') },
-        { text: t('settings.languageEnglish'), onPress: () => i18n.changeLanguage('en') },
-        { text: t('common.cancel'), style: 'cancel' }
-      ]
-    );
+  const handleLanguageChange = (lang: 'ru' | 'en') => {
+    i18n.changeLanguage(lang);
+    setModalConfig({ visible: false, type: null });
   };
 
   const SettingRow = ({ icon: Icon, label, value, onPress, isDestructive = false, hasArrow = true, rightElement }: any) => (
@@ -48,11 +47,18 @@ export const SettingsScreen = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>{t('settings.title')}</Text>
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <X color={colors.text.primary} size={22} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-        {/* ЗАГЛУШКА ПРОФИЛЯ  */}
+        {/* ЗАГЛУШКА ПРОФИЛЯ */}
         <View style={styles.profileSection}>
           <LinearGradient
             colors={[`${colors.gradients.purple[0]}20`, `${colors.gradients.purple[0]}05`]}
@@ -74,7 +80,7 @@ export const SettingsScreen = () => {
               icon={Globe}
               label={t('settings.language')}
               value={i18n.language === 'ru' ? t('settings.languageRussian') : t('settings.languageEnglish')}
-              onPress={handleLanguageChange}
+              onPress={() => setModalConfig({ visible: true, type: 'language' })}
             />
             <View style={styles.divider} />
             <SettingRow
@@ -83,8 +89,8 @@ export const SettingsScreen = () => {
               hasArrow={false}
               rightElement={
                 <Switch
-                  value={true} // Пока жестко включена
-                  onValueChange={() => Alert.alert(t('settings.themeAlertTitle'), t('settings.themeAlertMessage'))}
+                  value={true}
+                  onValueChange={() => setModalConfig({ visible: true, type: 'theme' })}
                   trackColor={{ false: '#333', true: colors.gradients.today[0] }}
                 />
               }
@@ -105,14 +111,66 @@ export const SettingsScreen = () => {
         </View>
 
       </ScrollView>
+
+      <Modal visible={modalConfig.visible} transparent animationType="fade">
+        <Pressable style={styles.modalOverlay} onPress={() => setModalConfig({ visible: false, type: null })}>
+          <Pressable style={styles.modalContent}>
+
+            {modalConfig.type === 'language' && (
+              <>
+                <Text style={styles.modalTitle}>{t('settings.language')}</Text>
+                <Text style={styles.modalMessage}>{t('settings.selectLanguage')}</Text>
+
+                <TouchableOpacity style={styles.modalButton} onPress={() => handleLanguageChange('ru')}>
+                  <Text style={styles.modalButtonText}>{t('settings.languageRussian')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.modalButton} onPress={() => handleLanguageChange('en')}>
+                  <Text style={styles.modalButtonText}>{t('settings.languageEnglish')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={[styles.modalButton, styles.modalCancelButton]} onPress={() => setModalConfig({ visible: false, type: null })}>
+                  <Text style={[styles.modalButtonText, { color: colors.text.dim }]}>{t('common.cancel')}</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
+            {modalConfig.type === 'theme' && (
+              <>
+                <Text style={styles.modalTitle}>{t('settings.themeAlertTitle')}</Text>
+                <Text style={styles.modalMessage}>{t('settings.themeAlertMessage')}</Text>
+
+                <TouchableOpacity style={[styles.modalButton, { backgroundColor: `${colors.gradients.today[0]}20` }]} onPress={() => setModalConfig({ visible: false, type: null })}>
+                  <Text style={[styles.modalButtonText, { color: colors.gradients.today[0] }]}>{t('common.confirm', 'Готово')}</Text>
+                </TouchableOpacity>
+              </>
+            )}
+
+          </Pressable>
+        </Pressable>
+      </Modal>
+
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: { paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.borders.past },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borders.past
+  },
   headerTitle: { color: colors.text.primary, fontSize: 24, fontWeight: '800' },
+  closeButton: {
+    padding: 8,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12,
+  },
   scrollContent: { padding: 16, paddingBottom: 40 },
 
   profileSection: { flexDirection: 'row', alignItems: 'center', gap: 16, marginBottom: 32, paddingHorizontal: 4 },
@@ -129,5 +187,13 @@ const styles = StyleSheet.create({
   settingLabel: { flex: 1, color: colors.text.primary, fontSize: 16, fontWeight: '600' },
   settingValue: { color: colors.text.secondary, fontSize: 15, fontWeight: '500', marginRight: 8 },
   rightElement: { marginLeft: 8 },
-  divider: { height: 1, backgroundColor: colors.borders.past, marginLeft: 64 }, // Отступ под размер иконки
+  divider: { height: 1, backgroundColor: colors.borders.past, marginLeft: 64 },
+
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalContent: { width: '100%', maxWidth: 340, backgroundColor: '#1C1C22', borderRadius: 28, padding: 24, borderWidth: 1, borderColor: colors.borders.past },
+  modalTitle: { color: colors.text.primary, fontSize: 20, fontWeight: '800', marginBottom: 8, textAlign: 'center' },
+  modalMessage: { color: colors.text.secondary, fontSize: 15, textAlign: 'center', marginBottom: 24, lineHeight: 22 },
+  modalButton: { backgroundColor: 'rgba(255,255,255,0.08)', paddingVertical: 16, borderRadius: 16, alignItems: 'center', marginBottom: 12 },
+  modalCancelButton: { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginTop: 4, marginBottom: 0 },
+  modalButtonText: { color: colors.text.primary, fontSize: 16, fontWeight: '700' },
 });
