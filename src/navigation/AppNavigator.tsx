@@ -10,15 +10,15 @@ import { CalendarScreen } from '../screens/CalendarScreen';
 import { CreateTrackerScreen } from '../screens/CreateTrackerScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { EditTrackerScreen } from '../screens/EditTrackerScreen';
-import { DayDetailScreen } from '../screens/DayDetailScreen'; // <-- 1. ИМПОРТИРУЕМ НОВЫЙ ЭКРАН
+import { DayDetailScreen } from '../screens/DayDetailScreen';
 
-import { ListCheck, PlusSquare, CalendarDays, User } from 'lucide-react-native';
+import { ListCheck, PlusSquare, CalendarDays } from 'lucide-react-native';
 import colors from '../constants/colors';
 import { View } from 'react-native';
 
 const RootStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
-const CalendarStack = createNativeStackNavigator(); // <-- 2. СОЗДАЕМ СТЕК ДЛЯ КАЛЕНДАРЯ
+const CalendarStack = createNativeStackNavigator();
 
 const HomeStackNavigator = () => {
   return (
@@ -29,13 +29,11 @@ const HomeStackNavigator = () => {
   );
 };
 
-// 3. ДОБАВЛЯЕМ НАВИГАТОР ДЛЯ ВКЛАДКИ КАЛЕНДАРЯ
 const CalendarStackNavigator = () => {
   return (
     <CalendarStack.Navigator screenOptions={{ headerShown: false }}>
       <CalendarStack.Screen name="CalendarMain" component={CalendarScreen} />
       <CalendarStack.Screen name="DayDetail" component={DayDetailScreen} />
-      {/* Добавляем TrackerDetail и сюда, чтобы карточки открывались плавно поверх календаря */}
       <CalendarStack.Screen name="TrackerDetail" component={TrackerDetailScreen} />
     </CalendarStack.Navigator>
   );
@@ -62,7 +60,6 @@ export const TabNavigator = () => {
         tabBarShowLabel: false,
       }}
     >
-      {/* ТАБ 1: СПИСОК */}
       <Tab.Screen
         name="ListTab"
         component={HomeStackNavigator}
@@ -71,7 +68,6 @@ export const TabNavigator = () => {
         }}
       />
 
-      {/* ТАБ 2: ПЛЮС */}
       <Tab.Screen
         name="AddButton"
         component={AddPlaceholder}
@@ -92,24 +88,13 @@ export const TabNavigator = () => {
         })}
       />
 
-      {/* ТАБ 3: КАЛЕНДАРЬ */}
       <Tab.Screen
         name="Calendar"
-        component={CalendarStackNavigator} // <-- 4. ЗАМЕНИЛИ КОМПОНЕНТ НА СТЕК
+        component={CalendarStackNavigator}
         options={{
           tabBarIcon: ({ color, size }) => <CalendarDays color={color} size={size} />,
         }}
       />
-
-      {/* ТАБ 4: ПРОФИЛЬ */}
-      <Tab.Screen
-        name="Profile"
-        component={SettingsScreen}
-        options={{
-          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
-        }}
-      />
-
     </Tab.Navigator>
   );
 };
@@ -133,6 +118,15 @@ export const AppNavigator = () => {
         <RootStack.Screen
           name="EditTracker"
           component={EditTrackerScreen}
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom'
+          }}
+        />
+
+        <RootStack.Screen
+          name="Settings"
+          component={SettingsScreen}
           options={{
             presentation: 'modal',
             animation: 'slide_from_bottom'
