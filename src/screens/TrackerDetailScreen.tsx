@@ -11,14 +11,16 @@ import { ru } from 'date-fns/locale';
 import * as Icons from 'lucide-react-native';
 
 import { useTrackerStore } from '../store/useTrackerStore';
-import colors from '../constants/colors';
 import { TrackerGrid } from '../components/TrackerGrid';
 import { ActionModal } from '../components/ActionModal';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 export const TrackerDetailScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const { colors, theme } = useAppTheme();
+  const styles = createStyles(colors, theme);
   const id = route.params?.id;
 
   const tracker = useTrackerStore((state) => state.trackers.find((t) => t.id === id));
@@ -447,7 +449,11 @@ export const TrackerDetailScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: ReturnType<typeof useAppTheme>['colors'],
+  theme: ReturnType<typeof useAppTheme>['theme']
+) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, zIndex: 10 },
   backButton: { padding: 8 },
@@ -465,7 +471,7 @@ const styles = StyleSheet.create({
 
   recordBadge: {
     marginLeft: 'auto',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(16,23,39,0.06)',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 10,
@@ -477,12 +483,12 @@ const styles = StyleSheet.create({
 
   descriptionText: { color: colors.text.secondary, fontSize: 14, lineHeight: 20, marginBottom: 16, opacity: 0.8 },
 
-  mainStatArea: { alignItems: 'center', paddingVertical: 12, marginBottom: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
+  mainStatArea: { alignItems: 'center', paddingVertical: 12, marginBottom: 16, borderBottomWidth: 1, borderBottomColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(16,23,39,0.08)' },
   mainStatValue: { color: colors.text.primary, fontSize: 64, fontWeight: '900', lineHeight: 70 },
   mainStatLabel: { fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginTop: 4 },
 
   subStatsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center' },
-  subStatItem: { flex: 1, minWidth: '30%', backgroundColor: 'rgba(0,0,0,0.2)', paddingVertical: 12, paddingHorizontal: 8, borderRadius: 12, alignItems: 'center' },
+  subStatItem: { flex: 1, minWidth: '30%', backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(16,23,39,0.05)', paddingVertical: 12, paddingHorizontal: 8, borderRadius: 12, alignItems: 'center' },
   subStatValue: { color: colors.text.primary, fontSize: 18, fontWeight: '800', marginBottom: 2 },
   subStatLabel: { color: colors.text.dim, fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
 
@@ -490,8 +496,8 @@ const styles = StyleSheet.create({
   gridContainer: { paddingHorizontal: 16 },
 
   menuOverlay: { flex: 1, backgroundColor: 'transparent' },
-  dropdownMenu: { position: 'absolute', top: 60, right: 16, backgroundColor: '#1C1C22', borderRadius: 16, borderWidth: 1, width: 200, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.5, shadowRadius: 15, elevation: 10 },
+  dropdownMenu: { position: 'absolute', top: 60, right: 16, backgroundColor: colors.surface, borderRadius: 16, borderWidth: 1, width: 200, shadowColor: '#000', shadowOffset: { width: 0, height: 10 }, shadowOpacity: theme === 'dark' ? 0.5 : 0.15, shadowRadius: 15, elevation: 10 },
   menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, gap: 12 },
   menuItemText: { color: colors.text.primary, fontSize: 16, fontWeight: '600' },
-  menuDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginHorizontal: 16 }
+  menuDivider: { height: 1, backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(16,23,39,0.08)', marginHorizontal: 16 }
 });

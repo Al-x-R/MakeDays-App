@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Modal, Pressable, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
-import colors from '../constants/colors';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 interface ActionModalProps {
   visible: boolean;
@@ -26,6 +26,8 @@ export const ActionModal = ({
   cancelText,
 }: ActionModalProps) => {
   const { t } = useTranslation();
+  const { colors, theme } = useAppTheme();
+  const styles = createStyles(colors, theme);
 
   return (
     <Modal transparent visible={visible} animationType="fade">
@@ -59,15 +61,19 @@ export const ActionModal = ({
   );
 };
 
-const styles = StyleSheet.create({
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  content: { width: '100%', backgroundColor: '#1A1A1E', borderRadius: 24, padding: 24, borderWidth: 1, borderColor: colors.borders.past },
-  header: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)', paddingBottom: 16, marginBottom: 16 },
-  title: { color: colors.text.primary, fontSize: 20, fontWeight: '800', textAlign: 'center' },
-  message: { color: colors.text.secondary, fontSize: 15, lineHeight: 24, textAlign: 'center', marginBottom: 24 },
-  buttonRow: { flexDirection: 'row', gap: 12 },
-  cancelBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  cancelBtnText: { color: colors.text.primary, fontSize: 16, fontWeight: '700' },
-  confirmBtn: { paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  confirmBtnText: { color: '#fff', fontSize: 16, fontWeight: '800', textTransform: 'uppercase' }
-});
+const createStyles = (
+  colors: ReturnType<typeof useAppTheme>['colors'],
+  theme: ReturnType<typeof useAppTheme>['theme']
+) =>
+  StyleSheet.create({
+    overlay: { flex: 1, backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.75)' : 'rgba(10, 20, 45, 0.3)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+    content: { width: '100%', backgroundColor: colors.modalSurface, borderRadius: 24, padding: 24, borderWidth: 1, borderColor: colors.borders.past },
+    header: { borderBottomWidth: 1, borderBottomColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(16,23,39,0.08)', paddingBottom: 16, marginBottom: 16 },
+    title: { color: colors.text.primary, fontSize: 20, fontWeight: '800', textAlign: 'center' },
+    message: { color: colors.text.secondary, fontSize: 15, lineHeight: 24, textAlign: 'center', marginBottom: 24 },
+    buttonRow: { flexDirection: 'row', gap: 12 },
+    cancelBtn: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center', backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(16,23,39,0.06)', borderWidth: 1, borderColor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(16,23,39,0.12)' },
+    cancelBtnText: { color: colors.text.primary, fontSize: 16, fontWeight: '700' },
+    confirmBtn: { paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+    confirmBtnText: { color: '#fff', fontSize: 16, fontWeight: '800', textTransform: 'uppercase' },
+  });

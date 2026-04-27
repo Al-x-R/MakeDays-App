@@ -15,9 +15,9 @@ import { useNavigation } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, addDays, differenceInCalendarDays, startOfDay } from 'date-fns';
 import { useTrackerStore } from '../store/useTrackerStore';
-import colors from '../constants/colors';
 import { TrackerType } from '../types';
 import { PreviewCard } from '../components/PreviewCard';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 const ICONS = [
   'Activity', 'Zap', 'Heart', 'Star', 'Moon', 'Sun',
@@ -31,6 +31,8 @@ export const CreateTrackerScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation();
   const addTracker = useTrackerStore((state) => state.addTracker);
+  const { colors, theme } = useAppTheme();
+  const styles = createStyles(colors, theme);
   const today = startOfDay(new Date());
 
   // --- STATE ---
@@ -224,7 +226,7 @@ export const CreateTrackerScreen = () => {
 
               {/* End Date Button */}
               <TouchableOpacity
-                style={[styles.dateBtn, inputsDisabled && {opacity: 1, backgroundColor: '#0A0A0A', borderColor: '#222'}]}
+                style={[styles.dateBtn, inputsDisabled && styles.dateBtnDisabled]}
                 onPress={() => openDatePicker('end')}
                 disabled={inputsDisabled}
               >
@@ -331,7 +333,11 @@ export const CreateTrackerScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: ReturnType<typeof useAppTheme>['colors'],
+  theme: ReturnType<typeof useAppTheme>['theme']
+) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: 'row', justifyContent: 'space-between', padding: 16, borderBottomWidth: 1, borderColor: colors.borders.past },
   headerTitle: { color: colors.text.primary, fontSize: 18, fontWeight: '700' },
@@ -339,18 +345,18 @@ const styles = StyleSheet.create({
   content: { padding: 16 },
 
   label: { color: colors.text.secondary, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 },
-  inputCompact: { backgroundColor: '#111', borderWidth: 1, borderColor: colors.borders.past, borderRadius: 8, padding: 12, color: colors.text.primary, fontSize: 16 },
+  inputCompact: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borders.past, borderRadius: 8, padding: 12, color: colors.text.primary, fontSize: 16 },
   compactRow: { marginBottom: 16 },
   row: { flexDirection: 'row', gap: 8 },
   // ICONS
   iconScroll: { gap: 8, paddingRight: 20 },
-  iconItem: { width: 44, height: 44, borderRadius: 8, borderWidth: 1, borderColor: colors.borders.past, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F0F12' },
+  iconItem: { width: 44, height: 44, borderRadius: 8, borderWidth: 1, borderColor: colors.borders.past, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.surface },
   iconItemSelected: { borderColor: colors.gradients.today[0], backgroundColor: 'rgba(0, 210, 255, 0.1)' },
-  selectBtn: { flex: 1, padding: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.borders.past, backgroundColor: '#0F0F12', alignItems: 'center' },
+  selectBtn: { flex: 1, padding: 10, borderRadius: 8, borderWidth: 1, borderColor: colors.borders.past, backgroundColor: colors.surface, alignItems: 'center' },
   selectBtnActive: { borderColor: colors.gradients.today[1], backgroundColor: 'rgba(0, 210, 255, 0.05)' },
   selectBtnText: { color: colors.text.secondary, fontWeight: '600', fontSize: 14 },
   selectBtnTextActive: { color: colors.text.primary },
-  modeBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: colors.borders.past, backgroundColor: '#0F0F12' },
+  modeBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: colors.borders.past, backgroundColor: colors.surface },
   modeBtnActive: { borderColor: colors.gradients.today[1], backgroundColor: 'rgba(0, 210, 255, 0.05)' },
   modeBtnQuitActive: { borderColor: colors.gradients.red[1], backgroundColor: 'rgba(255, 69, 58, 0.05)' },
   modeTitle: { color: colors.text.secondary, fontWeight: '700', fontSize: 13 },
@@ -359,10 +365,11 @@ const styles = StyleSheet.create({
   rowHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   switchContainer: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   switchText: { color: colors.text.dim, fontSize: 11 },
-  dateBtn: { flex: 1, alignItems: 'flex-start', justifyContent: 'center', backgroundColor: '#111', borderWidth: 1, borderColor: colors.borders.past, borderRadius: 8, padding: 12, height: 56 },
+  dateBtn: { flex: 1, alignItems: 'flex-start', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borders.past, borderRadius: 8, padding: 12, height: 56 },
+  dateBtnDisabled: { opacity: 1, backgroundColor: theme === 'dark' ? '#0A0A0A' : 'rgba(16,23,39,0.04)', borderColor: theme === 'dark' ? '#222' : colors.borders.subtle },
   dateLabelSmall: { color: colors.text.dim, fontSize: 10, textTransform: 'uppercase', marginBottom: 4 },
   dateText: { color: colors.text.secondary, fontSize: 14, fontWeight: '600' },
-  daysBubble: { alignSelf: 'center', marginTop: -8, backgroundColor: '#1A1A1E', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.borders.past, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  daysBubble: { alignSelf: 'center', marginTop: -8, backgroundColor: colors.modalSurface, paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: colors.borders.past, flexDirection: 'row', alignItems: 'center', gap: 4 },
   daysInputClean: { color: colors.text.primary, fontSize: 12, fontWeight: '700', minWidth: 16, textAlign: 'center' },
   daysSuffixClean: { color: colors.text.dim, fontSize: 11 },
   colorsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
@@ -372,8 +379,8 @@ const styles = StyleSheet.create({
   createButton: { padding: 14, borderRadius: 12, alignItems: 'center' },
   createButtonText: { color: colors.text.inverse, fontSize: 16, fontWeight: '800', textTransform: 'uppercase' },
   // MODAL
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
-  modalContent: { backgroundColor: '#1A1A1A', borderRadius: 16, padding: 16 },
+  modalOverlay: { flex: 1, backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.8)' : 'rgba(10, 20, 45, 0.28)', justifyContent: 'center', padding: 20 },
+  modalContent: { backgroundColor: colors.modalSurface, borderRadius: 16, padding: 16 },
   modalHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -395,7 +402,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   modalButtons: { flexDirection: 'row', gap: 12, marginTop: 16 },
-  btnCancel: { flex: 1, padding: 12, borderRadius: 8, backgroundColor: '#333', alignItems: 'center' },
+  btnCancel: { flex: 1, padding: 12, borderRadius: 8, backgroundColor: theme === 'dark' ? '#333' : 'rgba(16,23,39,0.12)', alignItems: 'center' },
   btnConfirm: { flex: 1, padding: 12, borderRadius: 8, backgroundColor: colors.gradients.today[1], alignItems: 'center' },
   btnText: { color: '#fff' },
   btnTextBold: { color: '#000', fontWeight: '700' },

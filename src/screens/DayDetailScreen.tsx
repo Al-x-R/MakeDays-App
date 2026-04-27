@@ -11,12 +11,14 @@ import { ru } from 'date-fns/locale';
 import * as Icons from 'lucide-react-native';
 
 import { useTrackerStore } from '../store/useTrackerStore';
-import colors from '../constants/colors';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 export const DayDetailScreen = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const { colors, theme } = useAppTheme();
+  const styles = createStyles(colors, theme);
 
   const dateParam = route.params?.date ? new Date(route.params.date) : new Date();
   const selectedDate = startOfDay(dateParam);
@@ -172,7 +174,11 @@ export const DayDetailScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: ReturnType<typeof useAppTheme>['colors'],
+  theme: ReturnType<typeof useAppTheme>['theme']
+) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { paddingHorizontal: 16, paddingVertical: 8, zIndex: 10 },
   backButton: { padding: 8, alignSelf: 'flex-start' },
@@ -182,14 +188,14 @@ const styles = StyleSheet.create({
   dateTitle: { color: colors.text.primary, fontSize: 28, fontWeight: '800', marginBottom: 24, textTransform: 'capitalize' },
 
   statsGrid: { flexDirection: 'row', width: '100%', justifyContent: 'space-between', gap: 10 },
-  statItem: { flex: 1, alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.2)', paddingVertical: 16, borderRadius: 16 },
+  statItem: { flex: 1, alignItems: 'center', backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(16,23,39,0.05)', paddingVertical: 16, borderRadius: 16 },
   statValue: { color: colors.text.primary, fontSize: 24, fontWeight: '900', marginBottom: 4 },
   statLabel: { color: colors.text.dim, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
 
   sectionTitle: { paddingHorizontal: 20, marginBottom: 16, color: colors.text.secondary, fontSize: 13, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 },
 
   trackersList: { paddingHorizontal: 16, gap: 12 },
-  trackerRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1C1C22', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  trackerRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : colors.borders.subtle },
   iconBox: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
   trackerInfo: { flex: 1 },
   trackerName: { color: colors.text.primary, fontSize: 16, fontWeight: '700', marginBottom: 4 },

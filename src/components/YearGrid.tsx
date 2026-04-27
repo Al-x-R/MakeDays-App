@@ -13,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useGridCalculation } from '../hooks/useGridCalculation';
 import { DayData } from '../types';
-import colors from '../constants/colors';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 const GAP = 5;
 const PADDING = 16;
@@ -25,6 +25,8 @@ export const YearGrid = () => {
   const { width } = useWindowDimensions();
   const navigation = useNavigation<any>();
   const months = useGridCalculation();
+  const { colors } = useAppTheme();
+  const styles = createStyles(colors);
 
   const availableWidth = width - (PADDING * 2) - MONTH_LABEL_WIDTH - GAP;
   const itemWidth = (availableWidth - (GAP * (COLS - 1))) / COLS;
@@ -148,17 +150,18 @@ export const YearGrid = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  scroll: { flex: 1 },
-  scrollContent: { paddingHorizontal: PADDING, paddingBottom: 5, paddingTop: 10 },
-  headerRow: { flexDirection: 'row', paddingHorizontal: PADDING, marginBottom: GAP, marginTop: 10, backgroundColor: colors.background, zIndex: 10 },
-  daysHeader: { flexDirection: 'row', gap: GAP },
-  weekDayText: { color: colors.text.secondary, textAlign: 'center', fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
-  monthRow: { flexDirection: 'row', marginBottom: GAP * 2, alignItems: 'stretch' },
-  monthLabelContainer: { width: MONTH_LABEL_WIDTH, marginRight: GAP, justifyContent: 'center', alignItems: 'center' },
-  monthTitle: { color: colors.text.secondary, fontSize: 10, fontWeight: '800', textAlign: 'center', lineHeight: 14, opacity: 0.8 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
-  cell: { borderRadius: 6, justifyContent: 'center', alignItems: 'center' },
-  cellText: { fontWeight: '700' },
-});
+const createStyles = (colors: ReturnType<typeof useAppTheme>['colors']) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    scroll: { flex: 1 },
+    scrollContent: { paddingHorizontal: PADDING, paddingBottom: 5, paddingTop: 10 },
+    headerRow: { flexDirection: 'row', paddingHorizontal: PADDING, marginBottom: GAP, marginTop: 10, backgroundColor: colors.background, zIndex: 10 },
+    daysHeader: { flexDirection: 'row', gap: GAP },
+    weekDayText: { color: colors.text.secondary, textAlign: 'center', fontSize: 10, fontWeight: '700', textTransform: 'uppercase' },
+    monthRow: { flexDirection: 'row', marginBottom: GAP * 2, alignItems: 'stretch' },
+    monthLabelContainer: { width: MONTH_LABEL_WIDTH, marginRight: GAP, justifyContent: 'center', alignItems: 'center' },
+    monthTitle: { color: colors.text.secondary, fontSize: 10, fontWeight: '800', textAlign: 'center', lineHeight: 14, opacity: 0.8 },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP },
+    cell: { borderRadius: 6, justifyContent: 'center', alignItems: 'center' },
+    cellText: { fontWeight: '700' },
+  });

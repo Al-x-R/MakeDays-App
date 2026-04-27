@@ -7,15 +7,19 @@ import { Globe, Moon, Info, User, X, ChevronRight } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 
-import colors from '../constants/colors';
+import { useAppTheme } from '../hooks/useAppTheme';
+import { useThemeStore } from '../store/useThemeStore';
 
 export const SettingsScreen = () => {
   const { t, i18n } = useTranslation();
   const navigation = useNavigation<any>();
+  const { colors, theme } = useAppTheme();
+  const setTheme = useThemeStore((state) => state.setTheme);
+  const styles = createStyles(colors, theme);
 
   const [modalConfig, setModalConfig] = useState<{
     visible: boolean;
-    type: 'language' | 'theme' | null;
+    type: 'language' | null;
   }>({ visible: false, type: null });
 
   const handleLanguageChange = (lang: 'ru' | 'en') => {
@@ -89,9 +93,10 @@ export const SettingsScreen = () => {
               hasArrow={false}
               rightElement={
                 <Switch
-                  value={true}
-                  onValueChange={() => setModalConfig({ visible: true, type: 'theme' })}
-                  trackColor={{ false: '#333', true: colors.gradients.today[0] }}
+                  value={theme === 'dark'}
+                  onValueChange={(isDark) => setTheme(isDark ? 'dark' : 'light')}
+                  trackColor={{ false: `${colors.gradients.today[0]}66`, true: colors.gradients.today[0] }}
+                  thumbColor={colors.text.inverse}
                 />
               }
             />
@@ -135,17 +140,6 @@ export const SettingsScreen = () => {
               </>
             )}
 
-            {modalConfig.type === 'theme' && (
-              <>
-                <Text style={styles.modalTitle}>{t('settings.themeAlertTitle')}</Text>
-                <Text style={styles.modalMessage}>{t('settings.themeAlertMessage')}</Text>
-
-                <TouchableOpacity style={[styles.modalButton, { backgroundColor: `${colors.gradients.today[0]}20` }]} onPress={() => setModalConfig({ visible: false, type: null })}>
-                  <Text style={[styles.modalButtonText, { color: colors.gradients.today[0] }]}>{t('common.confirm', 'Готово')}</Text>
-                </TouchableOpacity>
-              </>
-            )}
-
           </Pressable>
         </Pressable>
       </Modal>
@@ -154,7 +148,8 @@ export const SettingsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ReturnType<typeof useAppTheme>['colors'], theme: ReturnType<typeof useAppTheme>['theme']) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
@@ -168,7 +163,7 @@ const styles = StyleSheet.create({
   headerTitle: { color: colors.text.primary, fontSize: 24, fontWeight: '800' },
   closeButton: {
     padding: 8,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(16, 23, 39, 0.06)',
     borderRadius: 12,
   },
   scrollContent: { padding: 16, paddingBottom: 40 },
@@ -180,20 +175,28 @@ const styles = StyleSheet.create({
 
   section: { marginBottom: 24 },
   sectionTitle: { color: colors.text.dim, fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8, marginLeft: 16 },
-  card: { backgroundColor: '#111', borderRadius: 20, borderWidth: 1, borderColor: colors.borders.past, overflow: 'hidden' },
+  card: { backgroundColor: colors.surface, borderRadius: 20, borderWidth: 1, borderColor: colors.borders.past, overflow: 'hidden' },
 
   settingRow: { flexDirection: 'row', alignItems: 'center', padding: 16 },
-  iconBox: { width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(16, 23, 39, 0.06)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12
+  },
   settingLabel: { flex: 1, color: colors.text.primary, fontSize: 16, fontWeight: '600' },
   settingValue: { color: colors.text.secondary, fontSize: 15, fontWeight: '500', marginRight: 8 },
   rightElement: { marginLeft: 8 },
   divider: { height: 1, backgroundColor: colors.borders.past, marginLeft: 64 },
 
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 20 },
-  modalContent: { width: '100%', maxWidth: 340, backgroundColor: '#1C1C22', borderRadius: 28, padding: 24, borderWidth: 1, borderColor: colors.borders.past },
+  modalOverlay: { flex: 1, backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.6)' : 'rgba(10, 20, 45, 0.25)', justifyContent: 'center', alignItems: 'center', padding: 20 },
+  modalContent: { width: '100%', maxWidth: 340, backgroundColor: colors.modalSurface, borderRadius: 28, padding: 24, borderWidth: 1, borderColor: colors.borders.past },
   modalTitle: { color: colors.text.primary, fontSize: 20, fontWeight: '800', marginBottom: 8, textAlign: 'center' },
   modalMessage: { color: colors.text.secondary, fontSize: 15, textAlign: 'center', marginBottom: 24, lineHeight: 22 },
-  modalButton: { backgroundColor: 'rgba(255,255,255,0.08)', paddingVertical: 16, borderRadius: 16, alignItems: 'center', marginBottom: 12 },
-  modalCancelButton: { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', marginTop: 4, marginBottom: 0 },
+  modalButton: { backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(16, 23, 39, 0.06)', paddingVertical: 16, borderRadius: 16, alignItems: 'center', marginBottom: 12 },
+  modalCancelButton: { backgroundColor: 'transparent', borderWidth: 1, borderColor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(16, 23, 39, 0.12)', marginTop: 4, marginBottom: 0 },
   modalButtonText: { color: colors.text.primary, fontSize: 16, fontWeight: '700' },
 });

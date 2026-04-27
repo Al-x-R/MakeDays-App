@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import colors from '../constants/colors';
 import { TrackerType } from '../types';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 interface MiniGridProps {
   type: TrackerType;
@@ -12,6 +12,8 @@ interface MiniGridProps {
 }
 
 export const MiniGrid = ({ type, color, isCountDown, isChecked, behavior = 'DO' }: MiniGridProps) => {
+  const { colors } = useAppTheme();
+  const styles = createStyles();
   const gradient = colors.gradients[color as keyof typeof colors.gradients] || colors.gradients.today;
   const TODAY_INDEX = 13;
   const MOCK_HISTORY = [0, 1, 3, 4, 8, 9];
@@ -88,8 +90,9 @@ export const MiniGrid = ({ type, color, isCountDown, isChecked, behavior = 'DO' 
   );
 };
 
-const styles = StyleSheet.create({
-  container: { justifyContent: 'center', gap: 3 },
-  row: { flexDirection: 'row', gap: 3 },
-  cell: { width: 10, height: 10, borderRadius: 2 },
-});
+const createStyles = () =>
+  StyleSheet.create({
+    container: { justifyContent: 'center', gap: 3 },
+    row: { flexDirection: 'row', gap: 3 },
+    cell: { width: 10, height: 10, borderRadius: 2 },
+  });

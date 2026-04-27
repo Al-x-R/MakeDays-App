@@ -14,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { useTrackerStore } from '../store/useTrackerStore';
-import colors from '../constants/colors';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 const ICONS = [
   'Activity', 'Zap', 'Heart', 'Star', 'Moon', 'Sun',
@@ -28,6 +28,8 @@ export const EditTrackerScreen = () => {
   const { t } = useTranslation();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const { colors, theme } = useAppTheme();
+  const styles = createStyles(colors, theme);
   const id = route.params?.id;
 
   const tracker = useTrackerStore((state) => state.trackers.find((t) => t.id === id));
@@ -219,7 +221,7 @@ export const EditTrackerScreen = () => {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.dateBtn, inputsDisabled && { opacity: 1, backgroundColor: '#0A0A0A', borderColor: '#222' }]}
+                style={[styles.dateBtn, inputsDisabled && styles.dateBtnDisabled]}
                 onPress={() => openDatePicker('end')}
                 disabled={inputsDisabled}
               >
@@ -327,7 +329,11 @@ export const EditTrackerScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (
+  colors: ReturnType<typeof useAppTheme>['colors'],
+  theme: ReturnType<typeof useAppTheme>['theme']
+) =>
+  StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.borders.past },
   headerTitle: { color: colors.text.primary, fontSize: 18, fontWeight: '800' },
@@ -337,37 +343,38 @@ const styles = StyleSheet.create({
   section: { marginBottom: 24 },
   label: { color: colors.text.secondary, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', marginBottom: 8, letterSpacing: 0.5 },
 
-  inputCompact: { backgroundColor: '#111', borderWidth: 1, borderColor: colors.borders.past, borderRadius: 12, padding: 14, color: colors.text.primary, fontSize: 16 },
+  inputCompact: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borders.past, borderRadius: 12, padding: 14, color: colors.text.primary, fontSize: 16 },
 
   rowHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   switchContainer: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   switchText: { color: colors.text.dim, fontSize: 11 },
 
   row: { flexDirection: 'row', gap: 8 },
-  dateBtn: { flex: 1, alignItems: 'flex-start', justifyContent: 'center', backgroundColor: '#111', borderWidth: 1, borderColor: colors.borders.past, borderRadius: 12, padding: 14, height: 60 },
+  dateBtn: { flex: 1, alignItems: 'flex-start', justifyContent: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borders.past, borderRadius: 12, padding: 14, height: 60 },
+  dateBtnDisabled: { opacity: 1, backgroundColor: theme === 'dark' ? '#0A0A0A' : 'rgba(16,23,39,0.04)', borderColor: theme === 'dark' ? '#222' : colors.borders.subtle },
   dateLabelSmall: { color: colors.text.dim, fontSize: 10, textTransform: 'uppercase', marginBottom: 4 },
   dateText: { color: colors.text.secondary, fontSize: 15, fontWeight: '600' },
 
-  daysBubble: { alignSelf: 'center', marginTop: -10, backgroundColor: '#1A1A1E', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: colors.borders.past, flexDirection: 'row', alignItems: 'center', gap: 6, zIndex: 2 },
+  daysBubble: { alignSelf: 'center', marginTop: -10, backgroundColor: colors.modalSurface, paddingHorizontal: 14, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: colors.borders.past, flexDirection: 'row', alignItems: 'center', gap: 6, zIndex: 2 },
   daysInputClean: { color: colors.text.primary, fontSize: 14, fontWeight: '800', minWidth: 20, textAlign: 'center' },
   daysSuffixClean: { color: colors.text.dim, fontSize: 12, fontWeight: '600' },
 
   iconScroll: { gap: 10, paddingRight: 20 },
-  iconItem: { width: 52, height: 52, borderRadius: 14, borderWidth: 1, borderColor: colors.borders.past, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111' },
+  iconItem: { width: 52, height: 52, borderRadius: 14, borderWidth: 1, borderColor: colors.borders.past, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.surface },
 
   colorsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   colorCircle: { width: 44, height: 44, borderRadius: 22, justifyContent: 'center', alignItems: 'center', opacity: 0.5 },
   colorCircleSelected: { opacity: 1, borderWidth: 3, borderColor: colors.background },
 
   // MODAL
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', padding: 20 },
-  modalContent: { backgroundColor: '#1A1A1A', borderRadius: 20, padding: 20 },
+  modalOverlay: { flex: 1, backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.8)' : 'rgba(10, 20, 45, 0.28)', justifyContent: 'center', padding: 20 },
+  modalContent: { backgroundColor: colors.modalSurface, borderRadius: 20, padding: 20 },
   modalHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   modalTitle: { color: colors.text.primary, fontSize: 18, fontWeight: '800' },
   modalBadge: { backgroundColor: 'rgba(0, 210, 255, 0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(0, 210, 255, 0.2)' },
   modalBadgeText: { color: colors.gradients.today[0], fontSize: 12, fontWeight: '700' },
   modalButtons: { flexDirection: 'row', gap: 12, marginTop: 20 },
-  btnCancel: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: '#333', alignItems: 'center' },
+  btnCancel: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: theme === 'dark' ? '#333' : 'rgba(16,23,39,0.12)', alignItems: 'center' },
   btnConfirm: { flex: 1, padding: 14, borderRadius: 12, backgroundColor: colors.gradients.today[1], alignItems: 'center' },
   btnText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   btnTextBold: { color: '#000', fontSize: 16, fontWeight: '800' },

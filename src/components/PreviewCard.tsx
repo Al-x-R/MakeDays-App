@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Check, X as XIcon, Ban, Activity } from 'lucide-react-native';
 import * as Icons from 'lucide-react-native';
-import colors from '../constants/colors';
 import { TrackerType } from '../types';
 import { MiniGrid } from './MiniGrid';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 interface PreviewCardProps {
   title: string;
@@ -23,6 +23,8 @@ export const PreviewCard = ({
   title, type, color, daysInput, isInfinite, isCountDown, behavior = 'DO', icon = 'Activity'
 }: PreviewCardProps) => {
   const { t } = useTranslation();
+  const { colors, theme } = useAppTheme();
+  const styles = createStyles(colors, theme);
   const [isChecked, setIsChecked] = useState(false);
   const gradient = colors.gradients[color as keyof typeof colors.gradients] || colors.gradients.today;
 
@@ -117,30 +119,34 @@ export const PreviewCard = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: { marginBottom: 16, width: '100%' },
-  label: { color: colors.text.dim, fontSize: 10, textTransform: 'uppercase', marginBottom: 6, letterSpacing: 1, alignSelf: 'flex-start' },
-  card: {
-    width: '100%',
-    height: 84,
-    backgroundColor: 'rgba(20, 25, 30, 0.6)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: colors.borders.past,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  infoContainer: { flex: 1, justifyContent: 'center', marginRight: 8 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 3 },
-  title: { color: colors.text.primary, fontSize: 16, fontWeight: '700', flex: 1 },
-  infoText: { color: colors.text.secondary, fontSize: 12, marginBottom: 3, fontWeight: '500' },
-  typeLabel: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', opacity: 0.8, letterSpacing: 0.5 },
-  gridContainer: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
-  actionContainer: { minWidth: 40, alignItems: 'flex-end', justifyContent: 'center' },
-  checkbox: { width: 36, height: 36, borderRadius: 10, borderWidth: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)' },
-  quitCheckbox: { borderColor: 'rgba(255, 69, 58, 0.5)', backgroundColor: 'rgba(255, 69, 58, 0.1)' },
-  quitCheckboxActive: { backgroundColor: colors.gradients.red[0], borderColor: colors.gradients.red[0] },
-  bigNumber: { fontSize: 20, fontWeight: '800' },
-});
+const createStyles = (
+  colors: ReturnType<typeof useAppTheme>['colors'],
+  theme: ReturnType<typeof useAppTheme>['theme']
+) =>
+  StyleSheet.create({
+    container: { marginBottom: 16, width: '100%' },
+    label: { color: colors.text.dim, fontSize: 10, textTransform: 'uppercase', marginBottom: 6, letterSpacing: 1, alignSelf: 'flex-start' },
+    card: {
+      width: '100%',
+      height: 84,
+      backgroundColor: theme === 'dark' ? 'rgba(20, 25, 30, 0.6)' : 'rgba(255, 255, 255, 0.85)',
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      borderWidth: 1,
+      borderColor: colors.borders.past,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    infoContainer: { flex: 1, justifyContent: 'center', marginRight: 8 },
+    titleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 3 },
+    title: { color: colors.text.primary, fontSize: 16, fontWeight: '700', flex: 1 },
+    infoText: { color: colors.text.secondary, fontSize: 12, marginBottom: 3, fontWeight: '500' },
+    typeLabel: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', opacity: 0.8, letterSpacing: 0.5 },
+    gridContainer: { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6 },
+    actionContainer: { minWidth: 40, alignItems: 'flex-end', justifyContent: 'center' },
+    checkbox: { width: 36, height: 36, borderRadius: 10, borderWidth: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: theme === 'dark' ? 'rgba(0,0,0,0.3)' : 'rgba(16,23,39,0.08)' },
+    quitCheckbox: { borderColor: 'rgba(255, 69, 58, 0.5)', backgroundColor: 'rgba(255, 69, 58, 0.1)' },
+    quitCheckboxActive: { backgroundColor: colors.gradients.red[0], borderColor: colors.gradients.red[0] },
+    bigNumber: { fontSize: 20, fontWeight: '800' },
+  });

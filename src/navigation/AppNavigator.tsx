@@ -13,8 +13,8 @@ import { EditTrackerScreen } from '../screens/EditTrackerScreen';
 import { DayDetailScreen } from '../screens/DayDetailScreen';
 
 import { ListCheck, PlusSquare, CalendarDays } from 'lucide-react-native';
-import colors from '../constants/colors';
 import { View } from 'react-native';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 const RootStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -40,17 +40,23 @@ const CalendarStackNavigator = () => {
 };
 
 const Tab = createBottomTabNavigator();
-const AddPlaceholder = () => <View style={{flex:1, backgroundColor: colors.background}} />;
+const AddPlaceholder = () => {
+  const { colors } = useAppTheme();
+
+  return <View style={{ flex: 1, backgroundColor: colors.background }} />;
+};
 
 export const TabNavigator = () => {
+  const { colors, theme } = useAppTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#0A0A0E',
+          backgroundColor: colors.surface,
           borderTopWidth: 1,
-          borderTopColor: colors.borders.past,
+          borderTopColor: colors.borders.subtle,
           height: 60,
           paddingBottom: 8,
           paddingTop: 8,
@@ -58,6 +64,7 @@ export const TabNavigator = () => {
         tabBarActiveTintColor: colors.gradients.today[1],
         tabBarInactiveTintColor: colors.text.dim,
         tabBarShowLabel: false,
+        tabBarHideOnKeyboard: true,
       }}
     >
       <Tab.Screen
@@ -74,7 +81,7 @@ export const TabNavigator = () => {
         options={{
           tabBarIcon: ({ focused }) => (
             <PlusSquare
-              color={focused ? colors.gradients.today[1] : colors.text.primary}
+              color={focused ? colors.gradients.today[1] : (theme === 'dark' ? colors.text.primary : colors.text.secondary)}
               size={32}
               strokeWidth={2}
             />
@@ -100,8 +107,10 @@ export const TabNavigator = () => {
 };
 
 export const AppNavigator = () => {
+  const { navigationTheme } = useAppTheme();
+
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
 
         <RootStack.Screen name="MainTabs" component={TabNavigator} />

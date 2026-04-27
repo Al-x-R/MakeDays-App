@@ -7,8 +7,8 @@ import {
 } from 'date-fns';
 import { ru, enUS } from 'date-fns/locale';
 import { Flag, Trophy } from 'lucide-react-native';
-import colors from '../constants/colors';
 import { TrackerType } from '../types';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 const GAP = 5;
 const PADDING = 16;
@@ -32,6 +32,8 @@ export const TrackerGrid = ({
 }: TrackerGridProps) => {
   const { t, i18n } = useTranslation();
   const { width } = useWindowDimensions();
+  const { colors } = useAppTheme();
+  const styles = createStyles(colors);
 
   const activeGradient = colors.gradients[color as keyof typeof colors.gradients] || colors.gradients.today;
   const availableWidth = width - (PADDING * 2);
@@ -253,13 +255,14 @@ function addWeeks(date: Date, amount: number): Date {
   return addDays(date, amount * 7);
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  headerRow: { flexDirection: 'row', gap: GAP, marginBottom: GAP * 1.5,  },
-  weekDayText: { color: colors.text.secondary, textAlign: 'center', fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP, paddingBottom: 20,  },
-  cell: { borderRadius: 10, justifyContent: 'center', alignItems: 'center', position: 'relative' },
-  cellText: { fontWeight: '700' },
-  monthBadge: { position: 'absolute', bottom: -13, backgroundColor: colors.background, paddingHorizontal: 2, borderRadius: 4 },
-  monthText: { fontSize: 8, fontWeight: '800', textTransform: 'uppercase', color: colors.text.dim, letterSpacing: 0.5 },
-});
+const createStyles = (colors: ReturnType<typeof useAppTheme>['colors']) =>
+  StyleSheet.create({
+    container: { flex: 1 },
+    headerRow: { flexDirection: 'row', gap: GAP, marginBottom: GAP * 1.5 },
+    weekDayText: { color: colors.text.secondary, textAlign: 'center', fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
+    grid: { flexDirection: 'row', flexWrap: 'wrap', gap: GAP, paddingBottom: 20 },
+    cell: { borderRadius: 10, justifyContent: 'center', alignItems: 'center', position: 'relative' },
+    cellText: { fontWeight: '700' },
+    monthBadge: { position: 'absolute', bottom: -13, backgroundColor: colors.background, paddingHorizontal: 2, borderRadius: 4 },
+    monthText: { fontSize: 8, fontWeight: '800', textTransform: 'uppercase', color: colors.text.dim, letterSpacing: 0.5 },
+  });

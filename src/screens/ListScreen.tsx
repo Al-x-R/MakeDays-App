@@ -4,15 +4,17 @@ import { View, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-nati
 import { useTranslation } from 'react-i18next';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Header } from '../components/Header';
-import colors from '../constants/colors';
 import { useTrackerStore } from '../store/useTrackerStore';
 import { startOfDay, differenceInCalendarDays } from 'date-fns';
 import * as Icons from 'lucide-react-native';
 import { CheckCircle, Circle } from 'lucide-react-native';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 export const ListScreen = ({ navigation }: any) => {
   const { t } = useTranslation();
   const { trackers, toggleDay } = useTrackerStore();
+  const { colors, theme } = useAppTheme();
+  const styles = createStyles(colors, theme);
 
   const todayDate = startOfDay(new Date());
   const todayIso = todayDate.toISOString();
@@ -109,19 +111,30 @@ const formatDate = (date: Date) => {
   return `${d}.${m}`;
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  scroll: { paddingHorizontal: 16, paddingTop: 8, gap: 12 },
+const createStyles = (
+  colors: ReturnType<typeof useAppTheme>['colors'],
+  theme: ReturnType<typeof useAppTheme>['theme']
+) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    scroll: { paddingHorizontal: 16, paddingTop: 8, gap: 12 },
 
-  emptyState: { marginTop: 100, alignItems: 'center' },
-  emptyText: { color: colors.text.secondary, fontSize: 18, fontWeight: '600' },
-  emptySubText: { color: colors.text.dim, marginTop: 8 },
+    emptyState: { marginTop: 100, alignItems: 'center' },
+    emptyText: { color: colors.text.secondary, fontSize: 18, fontWeight: '600' },
+    emptySubText: { color: colors.text.dim, marginTop: 8 },
 
-  // Стили карточки, 1 в 1 как в DayDetailScreen
-  trackerRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1C1C22', padding: 16, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-  iconBox: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
-  trackerInfo: { flex: 1 },
-  trackerName: { color: colors.text.primary, fontSize: 16, fontWeight: '700', marginBottom: 4 },
-  trackerSubtext: { color: colors.text.dim, fontSize: 13, fontWeight: '500' },
-  actionArea: { paddingLeft: 12, justifyContent: 'center', alignItems: 'center' },
-});
+    trackerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      padding: 16,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : colors.borders.subtle,
+    },
+    iconBox: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginRight: 14 },
+    trackerInfo: { flex: 1 },
+    trackerName: { color: colors.text.primary, fontSize: 16, fontWeight: '700', marginBottom: 4 },
+    trackerSubtext: { color: colors.text.dim, fontSize: 13, fontWeight: '500' },
+    actionArea: { paddingLeft: 12, justifyContent: 'center', alignItems: 'center' },
+  });
